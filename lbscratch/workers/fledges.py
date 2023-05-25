@@ -1,13 +1,13 @@
-from contextlib import ExitStack
-from pfb.workers.experimental import cli
+
+from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
 import pyscilog
-pyscilog.init('pfb')
+pyscilog.init('lbscratch')
 log = pyscilog.get_logger('FLEDGES')
 
 from scabha.schema_utils import clickify_parameters
-from pfb.parser.schemas import schema
+from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
 defaults = {}
@@ -27,19 +27,10 @@ def fledges(**kw):
     pyscilog.log_to_file(f'fledges_{timestamp}.log')
     OmegaConf.set_struct(opts, True)
 
-    with ExitStack() as stack:
-
-
-        # TODO - prettier config printing
-        print('Input Options:', file=log)
-        for key in opts.keys():
-            print('     %25s = %s' % (key, opts[key]), file=log)
-
-        return _fledges(**opts)
-
-def _fledges(**kw):
-    opts = OmegaConf.create(kw)
-    OmegaConf.set_struct(opts, True)
+    # TODO - prettier config printing
+    print('Input Options:', file=log)
+    for key in opts.keys():
+        print('     %25s = %s' % (key, opts[key]), file=log)
 
     from multiprocessing.pool import ThreadPool
     import dask

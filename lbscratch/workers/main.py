@@ -6,6 +6,5 @@ import click
 def cli():
     pass
 
-from pfb.workers.misc import (gainspector, ift2qc, fledges, hthresh,
-                              bsmooth, delay_init, forward, backward,
-                              restimator, zarr2fits, gsmooth)
+from lbscratch.workers import (fledges, bsmooth,
+                              restimator, gsmooth)

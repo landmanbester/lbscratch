@@ -1,14 +1,15 @@
 # flake8: noqa
 from contextlib import ExitStack
-from pfb.workers.experimental import cli
+from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
+from omegaconf import ListConfig
 import pyscilog
-pyscilog.init('pfb')
+pyscilog.init('lbscratch')
 log = pyscilog.get_logger('GAINSPECTOR')
 
 from scabha.schema_utils import clickify_parameters
-from pfb.parser.schemas import schema
+from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
 defaults = {}
@@ -45,20 +46,12 @@ def gainspector(**kw):
 
     OmegaConf.set_struct(opts, True)
 
-    with ExitStack() as stack:
-        from pfb import set_client
-        opts = set_client(opts, stack, log, scheduler=opts.scheduler)
+    # TODO - prettier config printing
+    print('Input Options:', file=log)
+    for key in opts.keys():
+        print('     %25s = %s' % (key, opts[key]), file=log)
 
-        # TODO - prettier config printing
-        print('Input Options:', file=log)
-        for key in opts.keys():
-            print('     %25s = %s' % (key, opts[key]), file=log)
 
-        return _gainspector(**opts)
-
-def _gainspector(**kw):
-    opts = OmegaConf.create(kw)
-    from omegaconf import ListConfig
     if not isinstance(opts.gain_dir, list) and not \
         isinstance(opts.gain_dir, ListConfig):
         opts.gain_dir = [opts.gain_dir]

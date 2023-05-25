@@ -1,6 +1,4 @@
 inputs:
-  _include:
-    - (pfb.parser)dist.yml
   ms:
     dtype: MS
     required: true

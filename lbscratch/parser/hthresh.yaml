@@ -1,6 +1,4 @@
 inputs:
-  _include:
-    - (pfb.parser)dist.yml
   output_filename:
     dtype: str
     required: true

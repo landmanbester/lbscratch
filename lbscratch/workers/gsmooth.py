@@ -19,17 +19,17 @@ import xarray as xr
 from smoove.gpr import emterp
 from smoove.kernels.mattern52 import mat52
 import concurrent.futures as cf
-from pfb.utils.misc import smooth_ant
+from lbscratch.utils import smooth_ant
 from contextlib import ExitStack
-from pfb.workers.experimental import cli
+from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
 import pyscilog
-pyscilog.init('pfb')
+pyscilog.init('lbscratch')
 log = pyscilog.get_logger('GSMOOTH')
 
 from scabha.schema_utils import clickify_parameters
-from pfb.parser.schemas import schema
+from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
 defaults = {}

@@ -1,7 +1,7 @@
 
 cabs:
-  'pfb_init':
-    command: pfb.workers.init.init
+  'gainspector':
+    command: lbscratch.workers.gainspector.gainspector
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -9,10 +9,10 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)init.yaml
+      - (lbscratch.parser)gainspector.yaml
 
-  'pfb_grid':
-    command: pfb.workers.grid.grid
+  'ift2qc':
+    command: lbscratch.workers.ift2qc.ift2qc
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -20,10 +20,10 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)grid.yaml
+      - (lbscratch.parser)ift2qc.yaml
 
-  'pfb_degrid':
-    command: pfb.workers.degrid.degrid
+  'fledges':
+    command: lbscratch.workers.fledges.fledges
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -31,10 +31,10 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)degrid.yaml
+      - (lbscratch.parser)fledges.yaml
 
-  'pfb_clean':
-    command: pfb.workers.clean.clean
+  'hthresh':
+    command: lbscratch.workers.hthresh.hthresh
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -42,10 +42,10 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)clean.yaml
+      - (lbscratch.parser)hthresh.yaml
 
-  'pfb_restore':
-    command: pfb.workers.restore.restore
+  'bsmooth':
+    command: lbscratch.workers.bsmooth.bsmooth
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -53,10 +53,10 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)restore.yaml
+      - (lbscratch.parser)bsmooth.yaml
 
-  'pfb_fwdbwd':
-    command: pfb.workers.fwdbwd.fwdbwd
+  'gsmooth':
+    command: lbscratch.workers.gsmooth.gsmooth
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -64,10 +64,11 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)fwdbwd.yaml
+      - (lbscratch.parser)gsmooth.yaml
 
-  'pfbmisc_forward':
-    command: pfb.workers.misc.forward.forward
+
+  'delay_init':
+    command: lbscratch.workers.delay_init.delay_init
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -75,10 +76,10 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)forward.yaml
+      - (lbscratch.parser)delay_init.yaml
 
-  'pfbmisc_backward':
-    command: pfb.workers.misc.backward.backward
+  'zarr2fits':
+    command: lbscratch.workers.zarr2fits.zarr2fits
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -86,93 +87,4 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (pfb.parser)backward.yaml
-
-  'pfbmisc_gainspector':
-    command: pfb.workers.misc.gainspector.gainspector
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)gainspector.yaml
-
-  'pfbmisc_ift2qc':
-    command: pfb.workers.misc.ift2qc.ift2qc
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)ift2qc.yaml
-
-  'pfbmisc_fledges':
-    command: pfb.workers.misc.fledges.fledges
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)fledges.yaml
-
-  'pfbmisc_hthresh':
-    command: pfb.workers.misc.hthresh.hthresh
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)hthresh.yaml
-
-  'pfbmisc_bsmooth':
-    command: pfb.workers.misc.bsmooth.bsmooth
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)bsmooth.yaml
-
-  'pfbmisc_gsmooth':
-    command: pfb.workers.misc.gsmooth.gsmooth
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)gsmooth.yaml
-
-
-  'pfbmisc_delay_init':
-    command: pfb.workers.misc.delay_init.delay_init
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)delay_init.yaml
-
-  'pfbmisc_zarr2fits':
-    command: pfb.workers.misc.zarr2fits.zarr2fits
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
-
-    _include:
-      - (pfb.parser)zarr2fits.yaml
+      - (lbscratch.parser)zarr2fits.yaml

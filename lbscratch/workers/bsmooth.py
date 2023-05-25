@@ -16,18 +16,18 @@ import dask.array as da
 import dask
 import time
 from smoove.kanterp import kanterp
-from pfb.utils.misc import smooth_ant
+from lbscratch.utils import smooth_ant
 import concurrent.futures as cf
 from contextlib import ExitStack
-from pfb.workers.experimental import cli
+from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
 import pyscilog
-pyscilog.init('pfb')
+pyscilog.init('lbscratch')
 log = pyscilog.get_logger('BSMOOTH')
 
 from scabha.schema_utils import clickify_parameters
-from pfb.parser.schemas import schema
+from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
 defaults = {}
@@ -303,7 +303,7 @@ def bsmooth(**kw):
 
     print("All done here", file=log)
 
-from pfb.utils.misc import ForkedPdb
+
 def plot_ant(bamp, samp, bphase, sphase, gains, flags,
              xcoord, p, c, ref_gain, opts, gain_dir):
 

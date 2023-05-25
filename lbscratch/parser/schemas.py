@@ -17,7 +17,7 @@ class _CabInputsOutputs(object):
 # load schema files
 if schema is None:
 
-    # all *.yaml files under pfb.parser will be loaded automatically
+    # all *.yaml files under lbscratch.parser will be loaded automatically
 
     files = glob.glob(os.path.join(os.path.dirname(__file__), "*.yaml"))
 

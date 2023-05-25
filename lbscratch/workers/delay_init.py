@@ -1,13 +1,13 @@
 from contextlib import ExitStack
-from pfb.workers.experimental import cli
+from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
 import pyscilog
-pyscilog.init('pfb')
+pyscilog.init('lbscratch')
 log = pyscilog.get_logger('DELAY_INIT')
 
 from scabha.schema_utils import clickify_parameters
-from pfb.parser.schemas import schema
+from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
 defaults = {}
@@ -32,18 +32,12 @@ def delay_init(**kw):
     for key in opts.keys():
         print('     %25s = %s' % (key, opts[key]), file=log)
 
-    return _delay_init(**opts)
-
-def _delay_init(**kw):
-    opts = OmegaConf.create(kw)
-    OmegaConf.set_struct(opts, True)
-
     import numpy as np
     import dask
     import dask.array as da
     from daskms import xds_from_ms, xds_from_table
     from daskms.experimental.zarr import xds_to_zarr
-    from pfb.utils.misc import accum_vis, estimate_delay
+    from lbscratch.utils import accum_vis, estimate_delay
     import xarray as xr
     from pathlib import Path
 

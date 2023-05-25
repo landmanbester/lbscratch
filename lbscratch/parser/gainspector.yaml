@@ -1,6 +1,4 @@
 inputs:
-  _include:
-    - (pfb.parser)dist.yml
   gain_dir:
     dtype: str
     info: "Path to QuartiCal gain directory"

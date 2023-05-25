@@ -1,13 +1,13 @@
 from contextlib import ExitStack
-from pfb.workers.experimental import cli
+from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
 import pyscilog
-pyscilog.init('pfb')
+pyscilog.init('lbscratch')
 log = pyscilog.get_logger('RESTIMATOR')
 
 from scabha.schema_utils import clickify_parameters
-from pfb.parser.schemas import schema
+from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
 defaults = {}
@@ -31,12 +31,6 @@ def restimator(**kw):
     print('Input Options:', file=log)
     for key in opts.keys():
         print('     %25s = %s' % (key, opts[key]), file=log)
-
-    return _restimator(**opts)
-
-def _restimator(**kw):
-    opts = OmegaConf.create(kw)
-    OmegaConf.set_struct(opts, True)
 
     import numpy as np
     import dask
