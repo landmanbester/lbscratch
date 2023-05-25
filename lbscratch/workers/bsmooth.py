@@ -116,7 +116,9 @@ def bsmooth(**kw):
                                                  amp[0, :, p, 0, c],
                                                  phase[0, :, p, 0, c],
                                                  w, nu, p, c,
-                                                 do_phase=do_phase)
+                                                 do_phase=do_phase,
+                                                 niter=opts.nreweight,
+                                                 dof=opts.dof0)
                         futures.append(future)
 
                 for future in cf.as_completed(futures):
@@ -221,8 +223,10 @@ def bsmooth(**kw):
                     phase = bphase[0, :, p, 0, c]
                     do_phase = p != ref_ant
                     future = executor.submit(smooth_ant, amp, phase,
-                                            w, nu, p, c,
-                                            do_phase=do_phase)
+                                             w, nu, p, c,
+                                             do_phase=do_phase,
+                                             niter=opts.nreweight,
+                                             dof=opts.dof0)
                     futures.append(future)
 
             for future in cf.as_completed(futures):

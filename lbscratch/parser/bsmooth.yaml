@@ -43,6 +43,12 @@ inputs:
     default: false
     info:
       Smooth on per scan basis instead of globally
+  dof0:
+    dtype: float
+    default: 2.0
+  nreweight:
+    dtype: int
+    default: 5
 
 
 outputs:
