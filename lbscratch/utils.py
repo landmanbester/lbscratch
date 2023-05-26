@@ -27,10 +27,10 @@ def smooth_ant(amp, phase, w, xcoord, p, c,
     # print('amp', p, c, theta, nu)
     if do_phase:
         phaselin = np.interp(xcoord, xcoord[idx], phase[idx])
-        _, sphase, _, nu = kanterp(xcoord, phaselin, w/samp,
-                               niter=niter,
-                               nu=dof,
-                               sigman_min=sigman_min)
+        theta, sphase, _, nu = kanterp(xcoord, phaselin, w/samp,
+                                       niter=niter,
+                                       nu=dof,
+                                       sigman_min=sigman_min)
         # print('phase', p, c, theta, nu)
     else:
         sphase = np.zeros(phase.size)

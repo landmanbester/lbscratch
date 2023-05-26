@@ -110,6 +110,7 @@ def gsmooth(**kw):
 
         }
         )
+        dsk.attrs['TYPE'] = 'pure_delay'
         K[k] = dsk
 
     print(f"Writing pure delays (i.e. offset removed) to {str(gain_dir)}/"
