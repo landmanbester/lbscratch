@@ -1,26 +1,26 @@
 
 cabs:
-  'gainspector':
-    command: lbscratch.workers.gainspector.gainspector
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
+  # 'gainspector':
+  #   command: lbscratch.workers.gainspector.gainspector
+  #   flavour: python
+  #   policies:
+  #     pass_missing_as_none: true
+  #     prefix: '--'
+  #     replace: {'_': '-'}
 
-    _include:
-      - (lbscratch.parser)gainspector.yaml
+  #   _include:
+  #     - (lbscratch.parser)gainspector.yaml
 
-  'ift2qc':
-    command: lbscratch.workers.ift2qc.ift2qc
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
+  # 'ift2qc':
+  #   command: lbscratch.workers.ift2qc.ift2qc
+  #   flavour: python
+  #   policies:
+  #     pass_missing_as_none: true
+  #     prefix: '--'
+  #     replace: {'_': '-'}
 
-    _include:
-      - (lbscratch.parser)ift2qc.yaml
+  #   _include:
+  #     - (lbscratch.parser)ift2qc.yaml
 
   'fledges':
     command: lbscratch.workers.fledges.fledges
@@ -33,16 +33,16 @@ cabs:
     _include:
       - (lbscratch.parser)fledges.yaml
 
-  'hthresh':
-    command: lbscratch.workers.hthresh.hthresh
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
+  # 'hthresh':
+  #   command: lbscratch.workers.hthresh.hthresh
+  #   flavour: python
+  #   policies:
+  #     pass_missing_as_none: true
+  #     prefix: '--'
+  #     replace: {'_': '-'}
 
-    _include:
-      - (lbscratch.parser)hthresh.yaml
+  #   _include:
+  #     - (lbscratch.parser)hthresh.yaml
 
   'bsmooth':
     command: lbscratch.workers.bsmooth.bsmooth
@@ -67,8 +67,8 @@ cabs:
       - (lbscratch.parser)gsmooth.yaml
 
 
-  'delay_init':
-    command: lbscratch.workers.delay_init.delay_init
+  'restimator':
+    command: lbscratch.workers.restimator.restimator
     flavour: python
     policies:
       pass_missing_as_none: true
@@ -76,15 +76,26 @@ cabs:
       replace: {'_': '-'}
 
     _include:
-      - (lbscratch.parser)delay_init.yaml
+      - (lbscratch.parser)restimator.yaml
 
-  'zarr2fits':
-    command: lbscratch.workers.zarr2fits.zarr2fits
-    flavour: python
-    policies:
-      pass_missing_as_none: true
-      prefix: '--'
-      replace: {'_': '-'}
+  # 'delay_init':
+  #   command: lbscratch.workers.delay_init.delay_init
+  #   flavour: python
+  #   policies:
+  #     pass_missing_as_none: true
+  #     prefix: '--'
+  #     replace: {'_': '-'}
 
-    _include:
-      - (lbscratch.parser)zarr2fits.yaml
+  #   _include:
+  #     - (lbscratch.parser)delay_init.yaml
+
+  # 'zarr2fits':
+  #   command: lbscratch.workers.zarr2fits.zarr2fits
+  #   flavour: python
+  #   policies:
+  #     pass_missing_as_none: true
+  #     prefix: '--'
+  #     replace: {'_': '-'}
+
+  #   _include:
+  #     - (lbscratch.parser)zarr2fits.yaml
