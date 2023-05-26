@@ -49,6 +49,10 @@ inputs:
   nreweight:
     dtype: int
     default: 5
+  sigman_min:
+    dtype: float
+    default: 0.001
+
 
 
 outputs:

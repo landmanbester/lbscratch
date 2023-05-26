@@ -209,8 +209,9 @@ def bsmooth(**kw):
 
 
         print("Smoothing over all scans", file=log)
-        bamp = np.where(wgt > 0, bamp/wgt, 0)
-        bphase = np.where(wgt > 0, bphase/wgt, 0)
+        mask = wgt > 0
+        bamp[mask] = bamp[mask]/wgt[mask]
+        bphase[mask] = bphase[mask]/wgt[mask]
 
         samp = np.zeros_like(bamp)
         sphase = np.zeros_like(bamp)
@@ -226,7 +227,8 @@ def bsmooth(**kw):
                                              w, nu, p, c,
                                              do_phase=do_phase,
                                              niter=opts.nreweight,
-                                             dof=opts.dof0)
+                                             dof=opts.dof0,
+                                             sigman_min=opts.sigman_min)
                     futures.append(future)
 
             for future in cf.as_completed(futures):
