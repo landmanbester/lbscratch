@@ -273,13 +273,14 @@ def bsmooth(**kw):
         # we want to avoid repeatedly reading these from disk while plotting
         flags = {}
         gains = {}
-        for s, ds in enumerate(xds):
+        for ds in xds:
             jf = ds.jhj.values.real == 0.0
             f = ds.gain_flags.values
             flag = np.logical_or(jf, f[:, :, :, :, None])
             gain = ds.gains.values
             for p in range(nant):
                 for c in range(ncorr):
+                    s = ds.SCAN_NUMBER
                     gains.setdefault(f'{p}_{c}', {})
                     gains[f'{p}_{c}'][s] = gain[0, :, p, 0, c]
                     flags.setdefault(f'{p}_{c}', {})
