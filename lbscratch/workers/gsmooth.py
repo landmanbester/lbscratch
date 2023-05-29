@@ -82,10 +82,10 @@ def gsmooth(**kw):
             raise NotImplementedError('Only scalar offset can be transfered atm')
         offset = dsk.params.values[0, 0, :, 0, 0]
         # K = exp(1.0j*(offset + 2pi*slope*freq))
-        gain[:, :, :, :, 0] = (dsg.gains.values[:, :, :, :, 0] *
+        gain[:, :, :, :, 0] = (dsg.gains.values[:, :, :, :, 0].copy() *
                                np.exp(1.0j*offset[None, None, :, None]))
         offset = dsk.params.values[0, 0, :, 0, 2]
-        gain[:, :, :, :, 1] = (dsg.gains.values[:, :, :, :, 1] *
+        gain[:, :, :, :, 1] = (dsg.gains.values[:, :, :, :, 1].copy() *
                                np.exp(1.0j*offset[None, None, :, None]))
         dsg = dsg.assign(
             **{
@@ -95,10 +95,10 @@ def gsmooth(**kw):
         )
         xds[k] = dsg
 
-        params = dsk.params.values
+        params = dsk.params.values.copy()
         params[:, :, :, :, 0] = 0.0
         params[:, :, :, :, 2] = 0.0
-        freq = dsk.gain_freq.values[None, :, None, None, None]
+        freq = dsk.gain_freq.values.copy()[None, :, None, None, None]
         # this works because the offsets have been zeroed
         gain = np.exp(2.0j*np.pi*params[:, :, :, :, (1,3)] * freq)
         dsk = dsk.assign(
@@ -142,9 +142,9 @@ def gsmooth(**kw):
             if ndir > 1:
                 raise ValueError("Only time smoothing currently supported")
 
-            jhj = ds.jhj.values.real
-            g = ds.gains.values
-            f = ds.gain_flags.values
+            jhj = ds.jhj.values.copy().real
+            g = ds.gains.values.copy()
+            f = ds.gain_flags.values.copy()
             flag = np.logical_or(jhj==0, f[:, :, :, :, None])
             jhj = np.where(flag, 0.0, jhj)
 
@@ -204,10 +204,10 @@ def gsmooth(**kw):
     xds_concat = xr.concat(xds, dim='gain_time').sortby('gain_time')
     ntime, nchan, nant, ndir, ncorr = xds_concat.gains.data.shape
     xdso_concat = xr.concat(xdso, dim='gain_time').sortby('gain_time')
-    jhj = xds_concat.jhj.values.real
-    g = xds_concat.gains.values
-    gs = xdso_concat.gains.values
-    f = xds_concat.gain_flags.values
+    jhj = xds_concat.jhj.values.copy().real
+    g = xds_concat.gains.values.copy()
+    gs = xdso_concat.gains.values.copy()
+    f = xds_concat.gain_flags.values.copy()
     flag = np.logical_or(jhj==0, f[:, :, :, :, None])
     jhj = np.where(flag, 0.0, jhj)
 
@@ -229,7 +229,7 @@ def gsmooth(**kw):
     #                 gphase[I, 0, p, 0, c] -= 2*np.pi*np.sign(tmp)
 
 
-    t = xds_concat.gain_time.values
+    t = xds_concat.gain_time.values.copy()
 
     # kernel = mat52()
     # theta0 = np.ones(3)
