@@ -242,7 +242,6 @@ def bsmooth(**kw):
 
         bpass = samp * np.exp(1.0j*sphase)
         bpass = da.from_array(bpass, chunks=(-1, -1, -1, -1, -1))
-        flag = da.from_array(flag, chunks=(-1, -1, -1, -1))
         for i, ds in enumerate(xds):
             xds[i] = ds.assign(**{'gains': (ds.GAIN_AXES, bpass)})
 
