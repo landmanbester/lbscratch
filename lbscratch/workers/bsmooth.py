@@ -81,16 +81,18 @@ def bsmooth(**kw):
         sphase = np.zeros((nscan, ntime, nchan, nant, ndir, ncorr), dtype=np.float64)
         wgt = np.zeros((nscan, ntime, nchan, nant, ndir, ncorr), dtype=np.float64)
         for i, ds in enumerate(xds):
+            # copy to avoid mutating on disc data after write
             freq = ds.gain_freq.values.copy()
+            jhj = ds.jhj.values.real.copy()
+            g = ds.gains.values.copy()
+            f = ds.gain_flags.values.copy()
             # the smoothing coordinate needs to be normalised to lie between (0, 1)
             fmin = freq.min()
             fmax = freq.max()
             nu = (freq - fmin)/(fmax - fmin)
             nu += 0.1
             nu *= 0.9/nu.max()
-            jhj = ds.jhj.values.real
-            g = ds.gains.values
-            f = ds.gain_flags.values
+            # ensure consistent flag <-> jhj
             flag = np.logical_or(jhj == 0, f[:, :, :, :, None])
             jhj = np.where(flag, 0.0, jhj)
 
@@ -118,7 +120,8 @@ def bsmooth(**kw):
                                                  w, nu, p, c,
                                                  do_phase=do_phase,
                                                  niter=opts.nreweight,
-                                                 dof=opts.dof0)
+                                                 dof=opts.dof0,
+                                                 sigman_min=opts.sigman_min)
                         futures.append(future)
 
                 for future in cf.as_completed(futures):
@@ -133,8 +136,9 @@ def bsmooth(**kw):
 
         print(f"Writing smoothed gains to {str(gain_dir)}/"
               f"smoothed.qc::{opts.gain_term}", file=log)
-        writes = xds_to_zarr(xds, f'{str(gain_dir)}/smoothed.qc::{opts.gain_term}',
-                             columns=('gains','gain_flags'))
+        writes = xds_to_zarr(xds,
+                             f'{str(gain_dir)}/smoothed.qc::{opts.gain_term}',
+                             columns='ALL')
 
         dask.compute(writes)
 
@@ -148,7 +152,7 @@ def bsmooth(**kw):
                                              bphase[:, 0, :, p, 0, c],
                                              sphase[:, 0, :, p, 0, c],
                                              wgt[:, 0, :, p, 0, c],
-                                             nu, p, c,
+                                             freq, p, c,
                                              bphase[:, 0, :, ref_ant, 0, c],
                                              opts, gain_dir)
                     futures.append(future)
@@ -170,14 +174,12 @@ def bsmooth(**kw):
         bphase = np.zeros((ntime, nchan, nant, ndir, ncorr), dtype=np.float64)
         wgt = np.zeros((ntime, nchan, nant, ndir, ncorr), dtype=np.float64)
         for i, ds in enumerate(xds):
-            jhj = np.abs(ds.jhj.values)
-            g = ds.gains.values
-            f = ds.gain_flags.values
-            flag = np.any(jhj == 0, axis=-1)
-            flag = np.logical_or(flag, f)# [:, :, :, :, None]
-
-            for c in range(ncorr):
-                jhj[flag, c] = 0.0
+            jhj = np.abs(ds.jhj.values.copy())
+            g = ds.gains.values.copy()
+            f = ds.gain_flags.values.copy()
+            # ensure consistent flag <-> jhj
+            flag = np.logical_or(jhj == 0, f[:, :, :, :, None])
+            jhj = np.where(flag, 0.0, jhj)
 
             amp = np.abs(g)
             jhj = np.where(amp < opts.reject_amp_thresh, jhj, 0)
@@ -242,15 +244,14 @@ def bsmooth(**kw):
         bpass = da.from_array(bpass, chunks=(-1, -1, -1, -1, -1))
         flag = da.from_array(flag, chunks=(-1, -1, -1, -1))
         for i, ds in enumerate(xds):
-            xds[i] = ds.assign(**{'gains': (ds.GAIN_AXES, bpass),
-                                'gain_flags': (ds.GAIN_AXES[0:-1],
-                                                flag.astype(bool))})
+            xds[i] = ds.assign(**{'gains': (ds.GAIN_AXES, bpass)})
 
 
         print(f"Writing smoothed gains to {str(gain_dir)}/"
             f"smoothed.qc::{opts.gain_term}", file=log)
-        writes = xds_to_zarr(xds, f'{str(gain_dir)}/smoothed.qc::{opts.gain_term}',
-                            columns='ALL')
+        writes = xds_to_zarr(xds,
+                             f'{str(gain_dir)}/smoothed.qc::{opts.gain_term}',
+                             columns='ALL')
 
         bpass = dask.compute(bpass, writes)[0]
 
