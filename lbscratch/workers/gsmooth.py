@@ -65,66 +65,67 @@ def gsmooth(**kw):
         raise(e)
 
 
-    K = xds_from_zarr(f'{str(gain_dir)}::K')
+    if opts.transfer_offset_from is not None:
+        K = xds_from_zarr(f'{str(gain_dir)}::{opts.transfer_offset_from}')
 
-    ti = 0
-    It = []
-    for k, GK in enumerate(zip(xds, K)):
-        dsg, dsk = GK
-        gain = np.zeros(dsg.gains.shape, dsg.gains.dtype)
-        ntime = gain.shape[0]
-        It.append(slice(ti, ti+ntime))
-        ti += ntime
-        try:
-            assert dsk.params.shape[0] == 1
-        except:
-            # TODO - interpolate offset to resolution of G
-            raise NotImplementedError('Only scalar offset can be transfered atm')
-        offset = dsk.params.values[0, 0, :, 0, 0]
-        # K = exp(1.0j*(offset + 2pi*slope*freq))
-        gain[:, :, :, :, 0] = (dsg.gains.values[:, :, :, :, 0].copy() *
-                               np.exp(1.0j*offset[None, None, :, None]))
-        offset = dsk.params.values[0, 0, :, 0, 2]
-        gain[:, :, :, :, 1] = (dsg.gains.values[:, :, :, :, 1].copy() *
-                               np.exp(1.0j*offset[None, None, :, None]))
-        dsg = dsg.assign(
-            **{
-                'gains': (dsg.GAIN_AXES,
-                          da.from_array(gain, chunks=(-1, -1, -1, -1, -1)))
-        }
-        )
-        xds[k] = dsg
+        ti = 0
+        It = []
+        for k, GK in enumerate(zip(xds, K)):
+            dsg, dsk = GK
+            gain = np.zeros(dsg.gains.shape, dsg.gains.dtype)
+            ntime = gain.shape[0]
+            It.append(slice(ti, ti+ntime))
+            ti += ntime
+            try:
+                assert dsk.params.shape[0] == 1
+            except:
+                # TODO - interpolate offset to resolution of G
+                raise NotImplementedError('Only scalar offset can be transfered atm')
+            offset = dsk.params.values[0, 0, :, 0, 0]
+            # K = exp(1.0j*(offset + 2pi*slope*freq))
+            gain[:, :, :, :, 0] = (dsg.gains.values[:, :, :, :, 0].copy() *
+                                np.exp(1.0j*offset[None, None, :, None]))
+            offset = dsk.params.values[0, 0, :, 0, 2]
+            gain[:, :, :, :, 1] = (dsg.gains.values[:, :, :, :, 1].copy() *
+                                np.exp(1.0j*offset[None, None, :, None]))
+            dsg = dsg.assign(
+                **{
+                    'gains': (dsg.GAIN_AXES,
+                            da.from_array(gain, chunks=(-1, -1, -1, -1, -1)))
+            }
+            )
+            xds[k] = dsg
 
-        params = dsk.params.values.copy()
-        params[:, :, :, :, 0] = 0.0
-        params[:, :, :, :, 2] = 0.0
-        freq = dsk.gain_freq.values.copy()[None, :, None, None, None]
-        # this works because the offsets have been zeroed
-        gain = np.exp(2.0j*np.pi*params[:, :, :, :, (1,3)] * freq)
-        dsk = dsk.assign(
-            **{
-                'gains': (dsk.GAIN_AXES,
-                          da.from_array(gain, chunks=(-1, -1, -1, -1, -1))),
-                'params': (dsk.PARAM_AXES,
-                           da.from_array(params, chunks=(-1, -1, -1, -1, -1)))
+            params = dsk.params.values.copy()
+            params[:, :, :, :, 0] = 0.0
+            params[:, :, :, :, 2] = 0.0
+            freq = dsk.gain_freq.values.copy()[None, :, None, None, None]
+            # this works because the offsets have been zeroed
+            gain = np.exp(2.0j*np.pi*params[:, :, :, :, (1,3)] * freq)
+            dsk = dsk.assign(
+                **{
+                    'gains': (dsk.GAIN_AXES,
+                            da.from_array(gain, chunks=(-1, -1, -1, -1, -1))),
+                    'params': (dsk.PARAM_AXES,
+                            da.from_array(params, chunks=(-1, -1, -1, -1, -1)))
 
-        }
-        )
-        dsk.attrs['TYPE'] = 'pure_delay'
-        K[k] = dsk
+            }
+            )
+            dsk.attrs['TYPE'] = 'pure_delay'
+            K[k] = dsk
 
-    print(f"Writing pure delays (i.e. offset removed) to {str(gain_dir)}/"
-          f"smoothed.qc::K", file=log)
-    writes = xds_to_zarr(K, f'{str(gain_dir)}/smoothed.qc::K',
-                         columns=('gains',
-                                  'gain_flags',
-                                  'params',
-                                  'param_flags',
-                                  'jhj',
-                                  'conv_iter',
-                                  'conv_perc'))
+        print(f"Writing pure delays (i.e. offset removed) to {str(gain_dir)}/"
+            f"smoothed.qc::K", file=log)
+        writes = xds_to_zarr(K, f'{str(gain_dir)}/smoothed.qc::K',
+                            columns=('gains',
+                                    'gain_flags',
+                                    'params',
+                                    'param_flags',
+                                    'jhj',
+                                    'conv_iter',
+                                    'conv_perc'))
 
-    dask.compute(writes)
+        dask.compute(writes)
 
     if opts.ref_ant == -1:
         ref_ant = nant-1
@@ -212,7 +213,7 @@ def gsmooth(**kw):
     jhj = np.where(flag, 0.0, jhj)
 
 
-    # manual unwrap required?
+    # why manual unwrap sometimes required?
     gamp = np.abs(g)
     samp = np.abs(gs)
     gphase = np.angle(g*g[:, :, ref_ant].conj()[:, :, None])

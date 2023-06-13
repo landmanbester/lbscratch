@@ -33,6 +33,10 @@ inputs:
     default: false
     info:
       Make per antenna plots
+  transfer_offset_from:
+    dtype: str
+    info:
+      A delay_and_offset to transfer from. Must be in the same gain_dir
 
 
 outputs:
