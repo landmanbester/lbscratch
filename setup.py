@@ -18,6 +18,7 @@ requirements = [
                 "dask-ms[xarray, zarr, s3]",
                 "stimela==2.0rc4",
                 "finufft",
+                "codex-africanus",
 
                 "smoove"
                 "@git+https://github.com/landmanbester/smoove.git"

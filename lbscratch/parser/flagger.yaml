@@ -4,8 +4,19 @@ inputs:
     required: true
   row_chunk:
     dtype: int
-    default: -1
+    required: true
     abbreviation: rc
+  chan_chunk:
+    dtype: int
+    required: true
+    abbreviation: cc
+  mode:
+    dtype: str
+    required: true
+    choices:
+      - 'autos'
+      - 'edges'
+      - 'persistent'
   franges:
     dtype: str
     default: ':128,2697:2705,-128:'
@@ -16,6 +27,13 @@ inputs:
     dtype: int
     default: 16
     info: 'Number of dask threads'
+  sigma:
+    dtype: float
+    default: 3.0
+    info:
+      Flag data outside (med - sigma*mad, med + sigma*mad).
+      Currently only used in auto mode.
+
 
 outputs:
   {}

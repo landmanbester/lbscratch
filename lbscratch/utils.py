@@ -1,8 +1,11 @@
 import numpy as np
+from numba import njit
+import dask.array as da
 from smoove.kanterp import kanterp
 from finufft import nufft1d3
 import matplotlib.pyplot as plt
 from numba.types import literal
+from pfb.utils.misc import chunkify_rows
 import sympy as sm
 from sympy.physics.quantum import TensorProduct
 from sympy.utilities.lambdify import lambdify
@@ -504,3 +507,120 @@ def stokes_vis(product, mode, pol='linear'):
                          data[0], data[1], data[2], data[3])
 
     return vfunc, wfunc
+
+
+def index_where(p, q, P, Q):
+    return ((P==p) & (Q==q)).argmax()
+
+
+def row_to_tbl(data, ant1, ant2, time):
+        nant = np.maximum(ant1, ant2) + 1
+        nbl = nant * (nant - 1)/2 + nant  # including autos
+        utime = np.unique(time)
+        ntime = utime.size
+        dims = data.shape[1:]
+        out_data = np.zeros((ntime, nbl) + dims, dtype=data.dtype)
+        P, Q = np.tril_indices(nant)
+
+        row_chunks, rbin_idx, rbin_counts = chunkify_rows(time, 1)
+
+        for t in range(ntime):
+            for row in range(rbin_idx[t],
+                             rbin_idx[t] + rbin_counts[t]):
+                p = ant1[row]
+                q = ant2[row]
+                b = index_where(p, q, P, Q)
+                out_data[t, b] = data[row]
+        return out_data
+
+
+def flautos(data, flag, ant1, ant2, time):
+    row_counts, tbin_idx, tbin_counts = chunkify_rows(time, utimes_per_chunk=-1)
+    return da.blockwise(_flautos, 'rfc',
+                        data, 'rfc',
+                        flag, 'rfc',
+                        ant1, 'r',
+                        ant2, 'r',
+                        tbin_idx, None,
+                        tbin_counts, None,
+                        sigma, None,
+                        dtype=flag.dtype)
+
+
+def _flautos(data, flag, ant1, ant2, tbin_idx, tbin_counts, sigma=3):
+    # compute mad flags per antenna over time axis
+    ntime = tbin_idx.size
+    nrow, nchan, ncorr = data.shape
+    nant = np.maximum(ant1.max(), ant2.max()) + 1
+    ant_flags = np.zeros((nant, ntime, nchan, ncorr), dtype=bool)
+    flag_ant(data, flag, ant_flags, ant1, ant2, sigma=sigma)
+
+    # propagate to baselines i.e. if either antenna is flagged then flag baseline
+    flag_row(data, flag, ant_flags, ant1, ant2, tbin_idx, tbin_counts)
+    return flag
+
+
+@njit
+def max_abs_deviation(data):
+    med = np.median(data)
+    abs_med_deviation = np.abs(data - med)
+    return med, 1.4826*np.median(abs_med_deviation)
+
+
+@njit
+def flag_ant(data, flag, ant_flags, ant1, ant2, sigma=3.0):
+    nant, ntime, nchan, ncorr =  ant_flags.shape
+    for p in range(nant):
+        # select autocorr
+        idx = (ant1 == p) and (ant2 == p)
+        datap = data[idx]
+        flagp = flag[idx]
+        for f in range(nchan):
+            datapf = datap[:, f]
+            flagpf = flagp[:, f]
+            for c in range(ncorr):
+                mask = ~flagpf[:, c]
+                d = np.abs(datapf[mask, c])
+                med, mad = max_abs_deviation(d)  # TODO adapt for abs
+                flag_ant[p, :, f, c] = (d < med - sigma*mval) or (d > med + sigma*mval)
+
+
+@njit
+def flag_row(data, flag, ant_flags, ant1, ant2, tbin_idx, tbin_counts):
+    ntime = tbin_idx.size
+    nrow, nchan, ncorr = data.shape
+    for t in range(ntime):
+        for r in range(tbin_idx[t], tbin_idx[t] + tbin_counts[t]):
+            p = ant1[r]
+            q = ant2[r]
+            for f in range(nchan):
+                for c in range(ncorr):
+                    if flag_ant[p, t, f, c] or flag_ant[q, t, f, c]:
+                        flag[r, f, c] = True
+
+
+def set_flags(flag, I):
+    flag[:, I, :] = True
+    return flag
+
+
+def flags_at_edges(flags, time):
+    utime = np.unique(time)[((0, -1),)]  # only need first and last element
+    tflags = blockwise(_flags_at_edges, 'rfc',
+                       flags, 'rfc',
+                       time, 'r',
+                       utime, None,
+                       adjust_chunks={'row':2},
+                       dtype=np.uint8)
+    return tflags, utime
+
+def _flags_at_edges(flags, time, utime):
+    nrow, nchan, ncorr
+    tflags = np.zeros((2, nchan, ncorr), dtype=np.uint8)
+
+    idxi = time == utime[0]
+    idxf = time == utime[-1]
+
+    tflags[0] = flag[idxi].astype(np.uint8)
+    tflags[1] = flag[idxf].astype(np.uint8)
+    return tflags
