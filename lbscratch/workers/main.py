@@ -7,4 +7,5 @@ def cli():
     pass
 
 from lbscratch.workers import (fledges, bsmooth,
-                              restimator, gsmooth)
+                              restimator, gsmooth,
+                              flagger)
