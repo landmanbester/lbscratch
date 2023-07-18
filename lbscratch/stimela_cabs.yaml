@@ -78,6 +78,17 @@ cabs:
     _include:
       - (lbscratch.parser)restimator.yaml
 
+  'hess_psf':
+    command: lbscratch.workers.hess_psf.hess_psf
+    flavour: python
+    policies:
+      pass_missing_as_none: true
+      prefix: '--'
+      replace: {'_': '-'}
+
+    _include:
+      - (lbscratch.parser)hess_psf.yaml
+
   # 'delay_init':
   #   command: lbscratch.workers.delay_init.delay_init
   #   flavour: python

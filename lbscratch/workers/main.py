@@ -8,4 +8,4 @@ def cli():
 
 from lbscratch.workers import (fledges, bsmooth,
                               restimator, gsmooth,
-                              flagger)
+                              flagger, hess_psf)

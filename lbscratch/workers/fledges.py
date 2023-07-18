@@ -44,6 +44,7 @@ def fledges(**kw):
     xds = xds_from_ms(opts.ms, columns='FLAG', chunks={'row':opts.row_chunk},
                       group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
 
+    # 1397.4:1398.2 <=> 2590:2595
     # 1419.8:1421.3 <=> 2697:2705
     I = np.zeros(xds[0].chan.size, dtype=bool)
     for idx in opts.franges.split(','):

@@ -94,7 +94,7 @@ def flagger(**kw):
         tflags = []
         utimes = []
         for i, ds in enumerate(xds):
-            tflag, utime = flags_at_edges(ds.FLAGS.data,
+            tflag, utime = flags_at_edges(ds.FLAG.data,
                                           ds.TIME.values)
             tflags.append(tflag)
             utimes.append(utime)
