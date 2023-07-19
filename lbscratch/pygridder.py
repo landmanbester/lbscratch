@@ -183,11 +183,15 @@ def ms2dirty_python_fast(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, ep
     return im
 
 
-def dirty2ms_python_fast(uvw, freq, dirty, pixsizex, pixsizey, epsilon, do_wgridding):
+def dirty2ms_python_fast(uvw, freq, dirty, pixsizex, pixsizey, epsilon, do_wgridding, divn):
     u, v, w, w0, dw, nwplanes, nm1, kernel, gridcoord, slc0, slc1, ng, conjind = init(uvw, freq, dirty.shape[0], dirty.shape[1], pixsizex, pixsizey, epsilon, do_wgridding)
     supp = kernel._supp
     im = np.zeros(ng)
-    im[slc0, slc1] = dirty / ((nm1+1)*kernel.ft(nm1*dw) if do_wgridding else 1)
+    im[slc0, slc1] = dirty
+    if divn:
+        im[slc0, slc1] /= (nm1+1)
+    if do_wgridding:
+        im[slc0, slc1] /= kernel.ft(nm1*dw)
     im /= kernel.ft(gridcoord[0])[:, None]
     im /= kernel.ft(gridcoord[1])
     ms = np.zeros(len(u), dtype=np.complex128)
@@ -234,7 +238,7 @@ def dirty2ms_python_fast(uvw, freq, dirty, pixsizex, pixsizey, epsilon, do_wgrid
 
 
 # uvw, freq, wgt, 2*nx, 2*ny, cell_rad, cell_rad, epsilon, wstack)
-def ms2dirty_wplane(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, epsilon):
+def ms2dirty_wplane(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, epsilon, divn):
     u, v, w, w0, dw, nwplanes, nm1, kernel, gridcoord, slc0, slc1, ng, ms = init(uvw, freq, nxdirty, nydirty, pixsizex, pixsizey, epsilon, True, ms)
     im = np.zeros((nwplanes, nxdirty, nydirty))
 
@@ -244,14 +248,16 @@ def ms2dirty_wplane(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, epsilon
         loopim = np.fft.fftshift(scipy.fft.ifft2(grid)*np.prod(ng))
         loopim = loopim[slc0, slc1]
         loopim *= np.exp(-2j*np.pi*nm1*(w0+ii*dw))
-        im[ii] = loopim.real/((nm1+1)*kernel.ft(nm1*dw))
+        im[ii] = loopim.real/kernel.ft(nm1*dw)
+        if divn:
+            im[ii] /= (nm1+1)
         im[ii] /= kernel.ft(gridcoord[0][slc0])[:, None]
         im[ii] /= kernel.ft(gridcoord[1][slc1])
 
     return im, nm1, w0, dw
 
 
-def ms2dirty_numba(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, epsilon, do_wgridding):
+def ms2dirty_numba(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, epsilon, do_wgridding, divn):
     u, v, w, w0, dw, nwplanes, nm1, kernel, gridcoord, slc0, slc1, ng, ms = init(uvw, freq, nxdirty, nydirty, pixsizex, pixsizey, epsilon, do_wgridding, ms)
     im = np.zeros((nxdirty, nydirty))
     for ii in range(nwplanes):
@@ -265,7 +271,9 @@ def ms2dirty_numba(uvw, freq, ms, nxdirty, nydirty, pixsizex, pixsizey, epsilon,
     im /= kernel.ft(gridcoord[0][slc0])[:, None]
     im /= kernel.ft(gridcoord[1][slc1])
     if do_wgridding:
-        im /= (nm1+1)*kernel.ft(nm1*dw)
+        im /= kernel.ft(nm1*dw)
+    if divn:  # inform Martin of this bug
+        im /= (nm1+1)
     return im
 
 

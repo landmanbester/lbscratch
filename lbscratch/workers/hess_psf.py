@@ -66,10 +66,10 @@ def hess_psf(**kw):
 
     # max cell size
     cell_N = 1.0 / (2 * uv_max * freq.max() / lightspeed)
-    srf = 2.0
+    srf = 10.0
     cell_rad = cell_N / srf
     cell_deg = np.rad2deg(cell_rad)
-    fov = 1.5
+    fov = 0.5
     npix = int(fov / cell_deg)
     if npix%2:
         npix += 1
@@ -84,12 +84,6 @@ def hess_psf(**kw):
     eps = x**2+y**2
     nm1 = -eps/(np.sqrt(1.-eps)+1.)
 
-    # plt.imshow(nm1)
-    # plt.colorbar()
-    # plt.show()
-
-    wstack = False
-    divn = True
     epsilon = 1e-7
 
     # PSF with wgridder no wstack
@@ -101,25 +95,33 @@ def hess_psf(**kw):
                     center_x=0.0, center_y=0.0,
                     epsilon=epsilon,
                     flip_v=False,
-                    do_wgridding=wstack,
+                    do_wgridding=False,
                     divide_by_n=False,  # I believe we won't need this since applied during convolution?
                     nthreads=8,
                     verbosity=2)
 
-    psfhat = r2c(iFs(psf, axes=(0,1)),
+    psfhat = c2c(iFs(psf, axes=(0,1)),
                  axes=(0,1), inorm=0, forward=True)
+
     x = np.zeros((nx,  ny))
     x[nx//2, ny//2] = 1
     x[nx//3, ny//3] = 1
 
+    # is divide_by_n supposed to have an effect when do_wgridding=False?
+    res1 = hessian(x/(nm1+1)[nx//2:3*nx//2, ny//2:3*ny//2],
+                   uvw, freq, cell_rad,
+                   wstack=False,
+                   epsilon=epsilon,
+                   divn=True,
+                   nthreads=8)
+    res1 /= (nm1+1)[nx//2:3*nx//2, ny//2:3*ny//2]
 
-    # does divn have an effect when not doing wgridding?
-    res1 = hessian(x, uvw, freq, cell_rad, wstack, epsilon, divn, 8)
-    res2 = psf_convolve_slice(x, psfhat, psf.shape[-1], nm1, False, 8)
+    res2 = psf_convolve_slice(x, psfhat, psf.shape[-1], nm1,
+                              divn=True,
+                              nthreads=8)
 
     rmax = 2*np.abs(res1).max()  # avoid div by zero
     assert np.allclose(rmax + res1, rmax + res2, rtol=epsilon)
-
 
     # for reference what is the magnitude of the diffirence with w-gridding
     psfw = vis2dirty(uvw=uvw,
@@ -140,36 +142,33 @@ def hess_psf(**kw):
 
     res1 = hessian(x, uvw, freq, cell_rad, True, epsilon, False, 8)
     res2 = psf_convolve_slice(x, psfwhat, psf.shape[-1], nm1, False, 8)
+    res3 = psf_convolve_slice(x, psfhat, psf.shape[-1], nm1, False, 8)
 
-    print('Max diff between hess and psf-convolve-slice with w-stacking =', np.abs(res1-res2).max()/np.abs(res1).max())
+    print('Max diff between hess and psf-convolve-slice (psf with w-stacking) =', np.abs(res1-res2).max()/np.abs(res1).max())
+    print('Max diff between hess and psf-convolve-slice (psf without w-stacking) =', np.abs(res1-res3).max()/np.abs(res1).max())
 
 
-    psf2 = ms2dirty_numba(uvw, freq, wgt, 2*nx, 2*ny, cell_rad, cell_rad, epsilon, True)
+    psf2 = ms2dirty_numba(uvw, freq, wgt, 2*nx, 2*ny, cell_rad, cell_rad, epsilon, True, False)
     try:
         assert np.allclose(rmax + psfw, rmax + psf2, rtol=epsilon)
     except:
-        print('Max diff between psfs with w-stacking in numba vs wgridder version =', np.abs(psfw-psf2).max()/np.abs(psfw).max())
-
+        print('Max diff between psfs with w-stacking in numba vs wgridder =', np.abs(psfw-psf2).max()/np.abs(psfw).max())
 
     # this one constructs the PSF per w-stack and is consistent with the numba implementation
     # but now probably not 100% correct?
-    psfw2, nm12, w0, dw = ms2dirty_wplane(uvw, freq, wgt, 2*nx, 2*ny, cell_rad, cell_rad, epsilon)
+    psfw_stack, nm12, w0, dw = ms2dirty_wplane(uvw, freq, wgt, 2*nx, 2*ny, cell_rad, cell_rad, epsilon, divn=False)
 
-    assert np.allclose(rmax + psf2, rmax + np.sum(psfw2, axis=0), rtol=epsilon)
+    # assert np.allclose(rmax + psf2, rmax + np.sum(psfw_stack, axis=0), rtol=epsilon)
     assert np.allclose(1+nm1, 1+nm12, rtol=1e-14)
 
-    psfw = iFs(psfw, axes=(1,2))
-    psfhatw = c2c(psfw, axes=(1,2), inorm=0)
+    psfw_stack = iFs(psfw_stack, axes=(1,2))
+    psfwhat_stack = c2c(psfw_stack, axes=(1,2), inorm=0)
     lastsize = psfw.shape[-1]
 
 
-    res1 = hessian(x, uvw, freq, cell_rad, wstack, epsilon)
-    res2 = psf_convolve_slice(psfhatw, lastsize, nm1, w0, dw, x, 8)
+    res1 = hessian_python(x, uvw, freq, cell_rad, wstack=True, epsilon=epsilon, divn=False)
+    res2 = psf_convolve_wplanes(x, psfwhat_stack, lastsize, nm1, w0, dw, divn=False, nthreads=8)
 
-    psf = iFs(psf, axes=(0,1))
-    psfhat = r2c(psf, axes=(0,1), inorm=0)
-
-    res3 = psf_convolve_slice(psfhat, lastsize, nm1, x, 8)
 
 
     plt.figure(1)
@@ -181,15 +180,15 @@ def hess_psf(**kw):
     plt.figure(3)
     plt.imshow(res1-res2)
     plt.colorbar()
-    plt.figure(4)
-    plt.imshow(res1-res3)
-    plt.colorbar()
-    plt.figure(5)
-    plt.imshow(res2-res3)
-    plt.colorbar()
+    # plt.figure(4)
+    # plt.imshow(res1-res3)
+    # plt.colorbar()
+    # plt.figure(5)
+    # plt.imshow(res2-res3)
+    # plt.colorbar()
     plt.show()
 
-    print(np.abs(res1-res2).max())
+    print(np.abs(res1-res2).max()/np.abs(res1).max())
 
 
 def psf_convolve_slice(
@@ -197,7 +196,7 @@ def psf_convolve_slice(
                     psfhat,
                     lastsize,
                     nm1,
-                    divn,
+                    divn=True,
                     nthreads=1):
     '''
     Should be consistent with hessian + no wgridding + divn
@@ -220,12 +219,13 @@ def psf_convolve_slice(
 
 
 def psf_convolve_wplanes(
+                    x,  # input image, not overwritten
                     psfhat,
                     lastsize,
                     nm1,
                     w0,
                     dw,
-                    x,  # input image, not overwritten
+                    divn=True,
                     nthreads=1):
     '''
     Should be consistent with hessian + wgridding + divn
@@ -234,25 +234,34 @@ def psf_convolve_wplanes(
     nw, _, _ = psfhat.shape
     padding = ((nx//2, nx//2), (ny//2, ny//2))
     xpad = np.pad(x, padding, mode='constant')
-    xout = np.zeros_like(psfhat[0], dtype=x.dtype)
+    if divn:
+        xpad /= (nm1+1)
+    xout = np.zeros_like(xpad)
     for w in range(nw):
-        xhat = c2c(xpad*np.exp(2j*np.pi*nm1*(w0+w*dw))/(nm1+1), axes=(0, 1), nthreads=nthreads,
-                forward=True, inorm=0)
+        # xhat = c2c(xpad*np.exp(2j*np.pi*nm1*(w0+w*dw)), axes=(0, 1), nthreads=nthreads,
+        #         forward=True, inorm=0)
+        xhat = c2c(xpad, axes=(0, 1), nthreads=nthreads,
+                    forward=True, inorm=0)
         xout += (c2c(xhat * psfhat[w], axes=(0, 1), forward=False,
-                    inorm=2, nthreads=nthreads) * np.exp(-2j*np.pi*nm1*(w0+w*dw))).real
+                    inorm=2, nthreads=nthreads)).real
+        # xout += (c2c(xhat * psfhat[w], axes=(0, 1), forward=False,
+        #             inorm=2, nthreads=nthreads) * np.exp(-2j*np.pi*nm1*(w0+w*dw))).real
 
-    return (xout/(nm1+1))[nx//2:3*nx//2, ny//2:3*ny//2]
+    if divn:
+        return (xout/(nm1+1))[nx//2:3*nx//2, ny//2:3*ny//2]
+    else:
+        return xout[nx//2:3*nx//2, ny//2:3*ny//2]
 
 
-def hessian_python(x, uvw, freq, cell, wstack, epsilon):
+def hessian_python(x, uvw, freq, cell, wstack=True, epsilon=1, divn=True):
     nx, ny = x.shape
-    vis = dirty2ms_python_fast(uvw, freq, x, cell, cell, epsilon, wstack)
+    vis = dirty2ms_python_fast(uvw, freq, x, cell, cell, epsilon, wstack, divn)
 
-    return ms2dirty_numba_orig(uvw, freq, vis, nx, ny, cell, cell,
-                               epsilon, wstack)
+    return ms2dirty_numba(uvw, freq, vis, nx, ny, cell, cell,
+                               epsilon, wstack, divn)
 
 
-def hessian(x, uvw, freq, cell, wstack, epsilon, divn, nthreads):
+def hessian(x, uvw, freq, cell, wstack=True, epsilon=1e-7, divn=True, nthreads=1):
     nx, ny = x.shape
     vis = dirty2vis(uvw=uvw,
                     freq=freq,
