@@ -534,7 +534,7 @@ def row_to_tbl(data, ant1, ant2, time):
         return out_data
 
 
-def flautos(data, flag, ant1, ant2, time):
+def flautos(data, flag, ant1, ant2, time, sigma=3.0):
     row_counts, tbin_idx, tbin_counts = chunkify_rows(time, utimes_per_chunk=-1)
     return da.blockwise(_flautos, 'rfc',
                         data, 'rfc',
@@ -544,7 +544,8 @@ def flautos(data, flag, ant1, ant2, time):
                         tbin_idx, None,
                         tbin_counts, None,
                         sigma, None,
-                        dtype=flag.dtype)
+                        dtype=flag.dtype,
+                        meta=np.empty(flag.shape, dtype=flag.dtype))
 
 
 def _flautos(data, flag, ant1, ant2, tbin_idx, tbin_counts, sigma=3):
@@ -567,22 +568,33 @@ def max_abs_deviation(data):
     return med, 1.4826*np.median(abs_med_deviation)
 
 
-@njit
+# @njit
 def flag_ant(data, flag, ant_flags, ant1, ant2, sigma=3.0):
     nant, ntime, nchan, ncorr =  ant_flags.shape
     for p in range(nant):
         # select autocorr
-        idx = (ant1 == p) and (ant2 == p)
+        idx = (ant1 == p) & (ant2 == p)
         datap = data[idx]
         flagp = flag[idx]
         for f in range(nchan):
             datapf = datap[:, f]
             flagpf = flagp[:, f]
             for c in range(ncorr):
+                print(p, f, c)
+                datapfc = datapf[:, c]
                 mask = ~flagpf[:, c]
-                d = np.abs(datapf[mask, c])
+                d = np.abs(datapfc[mask])
+                import ipdb; ipdb.set_trace()
                 med, mad = max_abs_deviation(d)  # TODO adapt for abs
-                flag_ant[p, :, f, c] = (d < med - sigma*mval) or (d > med + sigma*mval)
+                min_val = np.minimum(0.0, med - sigma*mad)
+                max_val = med + sigma*mad
+
+                print(min_val, max_val)
+                # for t in range(ntime):
+                #     lowval = (datapfc[t] < min_val)
+                #     highval = (datapfc[t] > max_val)
+                #     print(lowval, highval)
+                    # ant_flags[p, t, f, c] = lowval or highval
 
 
 @njit
@@ -595,7 +607,7 @@ def flag_row(data, flag, ant_flags, ant1, ant2, tbin_idx, tbin_counts):
             q = ant2[r]
             for f in range(nchan):
                 for c in range(ncorr):
-                    if flag_ant[p, t, f, c] or flag_ant[q, t, f, c]:
+                    if ant_flags[p, t, f, c] or ant_flags[q, t, f, c]:
                         flag[r, f, c] = True
 
 

@@ -34,13 +34,15 @@ def flagger(**kw):
 
     from multiprocessing.pool import ThreadPool
     import dask
-    dask.config.set(pool=ThreadPool(opts.nthreads))
+    # dask.config.set(pool=ThreadPool(opts.nthreads))
+    dask.config.set(scheduler='sync')
     import dask.array as da
     from daskms import xds_from_storage_ms as xds_from_ms
     from daskms import xds_to_storage_table as xds_to_table
     import numpy as np
     import xarray as xr
     from lbscratch.utils import flautos, set_flags, flags_at_edges
+    from functools import partial
 
 
     if opts.mode == "autos":
@@ -49,16 +51,18 @@ def flagger(**kw):
                           columns=['DATA','FLAG','FLAG_ROW','ANTENNA1','ANTENNA2','TIME'],
                           chunks={'row':-1, 'chan': opts.chan_chunk},
                           group_cols=['FIELD_ID', 'DATA_DESC_ID'])  # , 'SCAN_NUMBER'
+
         xdso = []
         for ds in xds:
             flag = flautos(ds.DATA.data,
                            ds.FLAG.data,
                            ds.ANTENNA1.data,
                            ds.ANTENNA2.data,
-                           ds.TIME.values)
+                           ds.TIME.values,
+                           sigma=opts.sigma)
 
             dso = ds.assign(**{'FLAG': (('row','chan','corr'), flag)})
-            xds.append(dso)
+            xdso.append(dso)
 
     elif opts.mode == "edges":
         # group by whatever, only chunk over row
@@ -85,29 +89,27 @@ def flagger(**kw):
             xdso.append(dso)
 
     elif opts.mode == "persistent":
-        xds = xds_from_ms(opts.ms,
-                          columns=['FLAG','TIME','ANTENNA1','ANTENNA2'],
-                          chunks={'row':-1, 'chan': opts.chan_chunk},
-                          group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
+        raise NotImplementedError
+        # xds = xds_from_ms(opts.ms,
+        #                   columns=['FLAG','TIME','ANTENNA1','ANTENNA2'],
+        #                   chunks={'row':-1, 'chan': opts.chan_chunk},
+        #                   group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
 
-        # get flags at scan boundaries
-        tflags = []
-        utimes = []
-        for i, ds in enumerate(xds):
-            tflag, utime = flags_at_edges(ds.FLAG.data,
-                                          ds.TIME.values)
-            tflags.append(tflag)
-            utimes.append(utime)
+        # # get flags at scan boundaries
+        # tflags = []
+        # utimes = []
+        # for i, ds in enumerate(xds):
+        #     tflag, utime = flags_at_edges(ds.FLAG.data,
+        #                                   ds.TIME.values)
+        #     tflags.append(tflag)
+        #     utimes.append(utime)
 
-        tflags = dask.compute(tflags)
+        # tflags = dask.compute(tflags)
 
-        import pdb; pdb.set_trace()
-
-
-
+        # import pdb; pdb.set_trace()
 
     # make sure flag_row is consistent
-    flag_row = da.all(uflag.rechunk({1:-1, 2:-1}), axis=(1,2))
+    flag_row = da.all(flag.rechunk({1:-1, 2:-1}), axis=(1,2))
 
 
 
