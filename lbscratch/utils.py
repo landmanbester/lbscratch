@@ -614,26 +614,64 @@ def set_flags(flag, I):
     return flag
 
 
-def flags_at_edges(flags, time):
+def flags_at_edges(flag, time):
     utime = np.unique(time)[((0, -1),)]  # only need first and last element
-    tflags = blockwise(_flags_at_edges, 'rfc',
-                       flags, 'rfc',
+    nbl = (time==utime[0]).sum()
+    edge_flags = da.blockwise(_flags_at_edges, '2rfc',
+                       flag, 'rfc',
                        time, 'r',
                        utime, None,
-                       adjust_chunks={'row':2},
+                       new_axes={'2': 2},
+                       adjust_chunks={'row':nbl},
                        dtype=np.uint8)
-    return tflags, utime
+    return edge_flags, utime
 
-def _flags_at_edges(flags, time, utime):
-    nrow, nchan, ncorr
-    tflags = np.zeros((2, nchan, ncorr), dtype=np.uint8)
+def _flags_at_edges(flag, time, utime):
+    nrow, nchan, ncorr = flag.shape
 
     idxi = time == utime[0]
     idxf = time == utime[-1]
 
-    tflags[0] = flag[idxi].astype(np.uint8)
-    tflags[1] = flag[idxf].astype(np.uint8)
-    return tflags
+    nbl = idxi.sum()
+    edge_flag = np.zeros((2, nbl, nchan, ncorr), dtype=np.uint8)
+
+    edge_flag[0] = flag[idxi].astype(np.uint8)
+    edge_flag[1] = flag[idxf].astype(np.uint8)
+    return edge_flag
+
+
+def interp_flags(flag, time, ant1, ant2, edge_flags, edge_times):
+
+    bl_flag = row_to_tbl(flaf, ant1, ant2, time)
+
+
+
+
+
+def index_where(p, q, P, Q):
+    return ((P==p) & (Q==q)).argmax()
+
+
+def row_to_tbl(data, ant1, ant2, time):
+        nant = np.maximum(ant1, ant2) + 1
+        nbl = nant * (nant - 1)/2 + nant  # including autos
+        utime = np.unique(time)
+        ntime = utime.size
+        dims = data.shape[1:]
+        out_data = np.zeros((ntime, nbl) + dims, dtype=data.dtype)
+        P, Q = np.tril_indices(nant)
+
+        row_chunks, rbin_idx, rbin_counts = chunkify_rows(time, 1)
+
+        for t in range(ntime):
+            for row in range(rbin_idx[t],
+                             rbin_idx[t] + rbin_counts[t]):
+                p = ant1[row]
+                q = ant2[row]
+                b = index_where(p, q, P, Q)
+                out_data[t, b] = data[row]
+        return out_data
+
 
 
 def make_flag_row(flag):

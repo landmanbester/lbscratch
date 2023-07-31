@@ -93,24 +93,31 @@ def flagger(**kw):
             xdso.append(dso)
 
     elif opts.mode == "persistent":
-        raise NotImplementedError
-        # xds = xds_from_ms(opts.ms,
-        #                   columns=['FLAG','TIME','ANTENNA1','ANTENNA2'],
-        #                   chunks={'row':-1, 'chan': opts.chan_chunk},
-        #                   group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
+        xds = xds_from_ms(opts.ms,
+                          columns=['FLAG','TIME','ANTENNA1','ANTENNA2'],
+                          chunks={'row':-1, 'chan': opts.chan_chunk},
+                          group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
 
-        # # get flags at scan boundaries
-        # tflags = []
-        # utimes = []
-        # for i, ds in enumerate(xds):
-        #     tflag, utime = flags_at_edges(ds.FLAG.data,
-        #                                   ds.TIME.values)
-        #     tflags.append(tflag)
-        #     utimes.append(utime)
+        # get flags at scan boundaries
+        tflags = []
+        utimes = []
+        for ds in xds:
+            tflag, utime = flags_at_edges(ds.FLAG.data,
+                                          ds.TIME.values)
+            tflags.append(tflag)
+            utimes.append(utime)
 
-        # tflags = dask.compute(tflags)
+        tflags = dask.compute(tflags)[0]
 
-        # import pdb; pdb.set_trace()
+        utimes = np.concatenate(utimes, axis=0)
+        tflags = np.concatenate(tflags, axis=0)
+
+        xds = xds_from_ms(opts.ms_target,
+                          columns=['FLAG','TIME','ANTENNA1','ANTENNA2'],
+                          chunks={'row':-1, 'chan': opts.chan_chunk},
+                          group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
+
+        tflags = da.from_array(tflags, chunks=(-1, -1, opts.chan_chunk, -1))
 
     writes = xds_to_table(xdso, opts.ms,
                           columns=["FLAG", "FLAG_ROW"],
