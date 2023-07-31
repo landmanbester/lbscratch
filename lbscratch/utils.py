@@ -569,7 +569,7 @@ def max_abs_deviation(data):
 
 
 @njit
-def flag_ant(data, flag, ant_flags, ant1, ant2, sigma=3.0):
+def flag_ant(data, flag, ant_flags, ant1, ant2, sigma=3.0, minabs=1e-3):
     nant, ntime, nchan, ncorr =  ant_flags.shape
     for p in range(nant):
         # select autocorr
@@ -587,11 +587,11 @@ def flag_ant(data, flag, ant_flags, ant1, ant2, sigma=3.0):
                     continue
                 d = np.abs(datapfc[mask])
                 med, mad = max_abs_deviation(d)  # TODO adapt for abs
-                min_val = np.maximum(0.0, med - sigma*mad)
+                min_val = np.maximum(minabs, med - sigma*mad)
                 max_val = med + sigma*mad
                 for t in range(ntime):
-                    lowval = (datapfc[t] < min_val)
-                    highval = (datapfc[t] > max_val)
+                    lowval = (datapfc[t] <= min_val)
+                    highval = (datapfc[t] >= max_val)
                     ant_flags[p, t, f, c] = lowval or highval
 
 
