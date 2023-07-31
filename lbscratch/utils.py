@@ -568,33 +568,31 @@ def max_abs_deviation(data):
     return med, 1.4826*np.median(abs_med_deviation)
 
 
-# @njit
+@njit
 def flag_ant(data, flag, ant_flags, ant1, ant2, sigma=3.0):
     nant, ntime, nchan, ncorr =  ant_flags.shape
     for p in range(nant):
         # select autocorr
         idx = (ant1 == p) & (ant2 == p)
-        datap = data[idx]
+        datap = data[idx].real
         flagp = flag[idx]
         for f in range(nchan):
             datapf = datap[:, f]
             flagpf = flagp[:, f]
             for c in range(ncorr):
-                print(p, f, c)
                 datapfc = datapf[:, c]
                 mask = ~flagpf[:, c]
+                if not mask.any():
+                    # data already flagged
+                    continue
                 d = np.abs(datapfc[mask])
-                import ipdb; ipdb.set_trace()
                 med, mad = max_abs_deviation(d)  # TODO adapt for abs
-                min_val = np.minimum(0.0, med - sigma*mad)
+                min_val = np.maximum(0.0, med - sigma*mad)
                 max_val = med + sigma*mad
-
-                print(min_val, max_val)
-                # for t in range(ntime):
-                #     lowval = (datapfc[t] < min_val)
-                #     highval = (datapfc[t] > max_val)
-                #     print(lowval, highval)
-                    # ant_flags[p, t, f, c] = lowval or highval
+                for t in range(ntime):
+                    lowval = (datapfc[t] < min_val)
+                    highval = (datapfc[t] > max_val)
+                    ant_flags[p, t, f, c] = lowval or highval
 
 
 @njit
@@ -638,3 +636,18 @@ def _flags_at_edges(flags, time, utime):
     return tflags
 
 
+def make_flag_row(flag):
+
+    red_flag = da.blockwise(_red_flag, 'rf',
+                            flag='rfc',
+                            dtype=flag.dtype,
+                            adjust_chunks={'f':1})
+
+    return da.all(red_flag, axis=-1)
+
+
+def _red_flag(flag):
+    # first over corr axis
+    f = np.all(flag[0], axis=-1)
+    # now over chan
+    return np.all(f, axis=-1, keepdims=True)

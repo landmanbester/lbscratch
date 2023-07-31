@@ -34,8 +34,8 @@ def flagger(**kw):
 
     from multiprocessing.pool import ThreadPool
     import dask
-    # dask.config.set(pool=ThreadPool(opts.nthreads))
-    dask.config.set(scheduler='sync')
+    dask.config.set(pool=ThreadPool(opts.nthreads))
+    # dask.config.set(scheduler='sync')
     import dask.array as da
     from daskms import xds_from_storage_ms as xds_from_ms
     from daskms import xds_to_storage_table as xds_to_table
@@ -43,6 +43,7 @@ def flagger(**kw):
     import xarray as xr
     from lbscratch.utils import flautos, set_flags, flags_at_edges
     from functools import partial
+    from lbscratch.utils import make_flag_row
 
 
     if opts.mode == "autos":
@@ -61,7 +62,10 @@ def flagger(**kw):
                            ds.TIME.values,
                            sigma=opts.sigma)
 
-            dso = ds.assign(**{'FLAG': (('row','chan','corr'), flag)})
+            flag_row = make_flag_row(flag)
+
+            dso = ds.assign(**{'FLAG': (('row','chan','corr'), flag),
+                               'FLAG_ROW':(('row',), flag_row)})
             xdso.append(dso)
 
     elif opts.mode == "edges":
@@ -107,11 +111,6 @@ def flagger(**kw):
         # tflags = dask.compute(tflags)
 
         # import pdb; pdb.set_trace()
-
-    # make sure flag_row is consistent
-    flag_row = da.all(flag.rechunk({1:-1, 2:-1}), axis=(1,2))
-
-
 
     writes = xds_to_table(xdso, opts.ms,
                           columns=["FLAG", "FLAG_ROW"],
