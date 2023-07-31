@@ -37,6 +37,7 @@ def flagger(**kw):
     dask.config.set(pool=ThreadPool(opts.nthreads))
     # dask.config.set(scheduler='sync')
     import dask.array as da
+    from dask.diagnostics import ProgressBar
     from daskms import xds_from_storage_ms as xds_from_ms
     from daskms import xds_to_storage_table as xds_to_table
     import numpy as np
@@ -123,7 +124,8 @@ def flagger(**kw):
                           columns=["FLAG", "FLAG_ROW"],
                           rechunk=True)
 
-    dask.compute(writes)
+    with ProgressBar():
+        dask.compute(writes)
 
 
 
