@@ -5,20 +5,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 requirements = [
-                'ipython',
-                'numpy',
-                'scipy',
-                'numexpr',
-                'matplotlib',
-                'dask[distributed]',
-                'pytest >= 6.2.2',
-                'pyscilog >= 0.1.2',
-                'Click',
-                'omegaconf',
-                "dask-ms[xarray, zarr, s3]",
-                "stimela==2.0rc4",
                 "finufft",
-                "codex-africanus",
+                'pfb-clean',
 
                 "smoove"
                 "@git+https://github.com/landmanbester/smoove.git"

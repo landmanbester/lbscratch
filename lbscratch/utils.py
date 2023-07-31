@@ -677,7 +677,7 @@ def row_to_tbl(data, ant1, ant2, time):
 def make_flag_row(flag):
 
     red_flag = da.blockwise(_red_flag, 'rf',
-                            flag='rfc',
+                            flag, 'rfc',
                             dtype=flag.dtype,
                             adjust_chunks={'f':1})
 
