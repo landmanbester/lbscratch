@@ -280,7 +280,10 @@ def bsmooth(**kw):
             gain = ds.gains.values
             for p in range(nant):
                 for c in range(ncorr):
-                    s = ds.SCAN_NUMBER
+                    try:
+                        s = ds.SCAN_NUMBER
+                    except:
+                        s = 'all'
                     gains.setdefault(f'{p}_{c}', {})
                     gains[f'{p}_{c}'][s] = gain[0, :, p, 0, c]
                     flags.setdefault(f'{p}_{c}', {})
