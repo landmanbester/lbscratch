@@ -33,7 +33,8 @@ for key in schema.hess_psf["inputs"].keys():
 @clickify_parameters(schema.hess_psf)
 def hess_psf(**kw):
     '''
-    Find best reference antenna based on flagged percentages
+    Attempt to improve accuracy of hessian approximation by
+    pre-computing the PSFs and grid correctors per w-plane
     '''
     defaults.update(kw)
     opts = OmegaConf.create(defaults)

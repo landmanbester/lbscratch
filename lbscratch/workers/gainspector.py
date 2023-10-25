@@ -225,4 +225,7 @@
 #                 plt.close()
 #             except Exception as e:
 #                 continue
-
+# p = 0
+# phasep = np.angle(g[:, :, p])
+# g *= np.exp(-1.0j*phasep[:, :, None])
+# assert (np.angle(g[:, :, p]) == 0.0).all()
