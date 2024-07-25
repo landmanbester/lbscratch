@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 requirements = [
                 "finufft",
-                'pfb-clean',
+                'pfb-imaging',
 
                 "smoove"
                 "@git+https://github.com/landmanbester/smoove.git"
