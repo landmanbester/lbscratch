@@ -45,7 +45,7 @@ def chanflags(**kw):
     xds = xds_from_ms(ms_name,
                       columns=['FLAG'],
                       group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'],
-                      chunks={'row': -1, 'chan': 1, 'corr': -1})
+                      chunks={'row': -1, 'chan': 256, 'corr': -1})
     spw = xds_from_table(f'{ms_name}::SPECTRAL_WINDOW')[0]
     freq = spw.CHAN_FREQ.data[0]
 
