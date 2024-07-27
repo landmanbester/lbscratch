@@ -50,8 +50,10 @@ def chanflags(**kw):
     freq = spw.CHAN_FREQ.data[0]
 
     counts = []
+    nrow = 0
     for ds in xds:
         nflag = ~ds.FLAG.data
+        nrow += nflag.shape[0]
         counts.append(da.sum(nflag, axis=(0, -1))[:, None])
 
     freq, counts = dask.compute(freq, counts)
@@ -59,13 +61,13 @@ def chanflags(**kw):
     count = np.stack(counts, axis=1)
     count = count.sum(axis=1)
 
-    nrow, nchan, ncorr = nflag.shape
+    _, nchan, ncorr = nflag.shape
 
     mask = count[:, 0] > 0
     if mask.any():
         unflagged_freqs = freq[mask]
         print(f'First and last unflagged freqs = {unflagged_freqs[0]} and {unflagged_freqs[-1]}', file=log)
-        print(f'Corresponding inices = {mask.argmax()} and {nchan - mask[::-1].argmax()}')
+        print(f'Corresponding inices = {mask.argmax()} and {nchan - mask[::-1].argmax()}', file=log)
     else:
         print(f'All freqs are flagged', file=log)
 
