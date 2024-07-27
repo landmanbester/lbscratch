@@ -65,6 +65,7 @@ def chanflags(**kw):
     if mask.any():
         unflagged_freqs = freq[mask]
         print(f'First and last unflagged freqs = {unflagged_freqs[0]} and {unflagged_freqs[-1]}', file=log)
+        print(f'Corresponding inices = {mask.argmax()} and {nchan - mask[::-1].argmax()}')
     else:
         print(f'All freqs are flagged', file=log)
 
