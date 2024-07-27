@@ -54,10 +54,10 @@ def chanflags(**kw):
         nflag = ~ds.FLAG.data
         counts.append(da.sum(nflag, axis=(0, -1))[:, None])
 
-    count = da.stack(counts, axis=1)
-    count = count.sum(axis=1)
+    freq, counts = dask.compute(freq, counts)
 
-    freq, count = dask.compute(freq, count)
+    count = np.stack(counts, axis=1)
+    count = count.sum(axis=1)
 
     nrow, nchan, ncorr = nflag.shape
 
