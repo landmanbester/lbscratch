@@ -1,0 +1,11 @@
+inputs:
+  ms:
+    dtype: str
+    required: true
+  oname:
+    dtype: str
+    info:
+      Output name
+
+outputs:
+  {}
