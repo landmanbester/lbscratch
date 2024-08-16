@@ -40,7 +40,7 @@ def clip_gain_amps(**kw):
     for key in opts.keys():
         print('     %25s = %s' % (key, opts[key]), file=log)
 
-    gain_dir = str(Path(opts.gain_dir).resolve())
+    gain_dir = str(Path(opts.gain).resolve())
     gain_dir = '::'.join(gain_dir.rsplit('/', 1))
 
     try:
