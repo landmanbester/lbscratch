@@ -9,4 +9,5 @@ def cli():
 from lbscratch.workers import (fledges, bsmooth,
                               restimator, gsmooth,
                               flagger, hess_psf,
-                              chanflags)
+                              chanflags,
+                              clip_gain_amps)
