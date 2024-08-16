@@ -55,21 +55,25 @@ def clip_gain_amps(**kw):
     if ndir > 1:
         raise NotImplementedError("DD gains not supported")
 
-    with cf.ProcessPoolExecutor(max_workers=nscan) as executor:
-        futures = []
-        for i, ds in enumerate(xds):
-            fut = executor.submit(clip_amp,
-                                  ds,
-                                  opts.threshold,
-                                  opts.window,
-                                  i)
-        for fut in cf.as_completed(futures):
-            ds, i = fut.result()
-            xds[i] = ds
-            print(f'Flagged scan {i}')
+    ds, i = clip_amp(xds[0], opts.threshold, opts.window, 0)
 
-    writes = xds_to_zarr(xds, gain_dir+'-flagged')
-    dask.compute(writes)
+    import ipdb; ipdb.set_trace()
+
+    # with cf.ProcessPoolExecutor(max_workers=nscan) as executor:
+    #     futures = []
+    #     for i, ds in enumerate(xds):
+    #         fut = executor.submit(clip_amp,
+    #                               ds,
+    #                               opts.threshold,
+    #                               opts.window,
+    #                               i)
+    #     for fut in cf.as_completed(futures):
+    #         ds, i = fut.result()
+    #         xds[i] = ds
+    #         print(f'Flagged scan {i}')
+
+    # writes = xds_to_zarr(xds, gain_dir+'-flagged')
+    # dask.compute(writes)
 
 
 
@@ -97,10 +101,9 @@ def clip_amp(ds, threshold, window, i):
                 # detrend
                 data_time_med = np.nanmedian(data, axis=0, keepdims=True)
                 data -= data_time_med
-                dflat = data[~flag]
-                median = np.median(dflat)
-                madval = mad(dflat)
-                diff = np.abs(data[:, p, Ilow:Ihigh, 0, c]-median)
+                median = np.nanmedian(data)
+                madval = mad(data, axis=None, scale='normal', nan_policy='omit')
+                diff = np.abs(data - median)
                 flags[:, f, p, 0, c] = np.where(diff > threshold * mad, 1, 0)
 
     ds['gain_flags'] = (ds.gain_flags.dims, flags)
