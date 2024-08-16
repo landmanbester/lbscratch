@@ -44,7 +44,7 @@ def clip_gain_amps(**kw):
     gain_dir = '::'.join(gain_dir.rsplit('/', 1))
 
     try:
-        xds = xds_from_zarr(f'{str(gain_dir)}::{opts.gain_term}')
+        xds = xds_from_zarr(gain_dir)
         if not len(xds):
             raise ValueError(f'No data at {str(gain_dir)}')
     except Exception as e:
