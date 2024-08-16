@@ -81,7 +81,7 @@ def clip_amp(ds, threshold, window, i):
     amp = np.abs(ds.gains.values)
     flags = ds.gain_flags.values
     freq = ds.gain_freq.values
-    ntime, nchan, nant, ndir, ncorr  = gain.shape
+    ntime, nchan, nant, ndir, ncorr  = amp.shape
     amp = np.where(flag, np.nan, amp)
 
     for p in range(nant):
