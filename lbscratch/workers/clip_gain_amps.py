@@ -78,6 +78,7 @@ def clip_amp(ds, threshold, window, i):
     flags = ds.gain_flags.values
     freq = ds.gain_freq.values
     ntime, nchan, nant, ndir, ncorr  = freq.size
+    amp = np.where(flag, np.nan, amp)
 
     for p in range(nant):
         for f in range(nchan):
@@ -91,11 +92,15 @@ def clip_amp(ds, threshold, window, i):
                 data = amp[:, p, Ilow:Ihigh, 0, c]
                 # check window is non-empty
                 if flag.all():
+                    flags[:, f, p, 0, c] = 1
                     continue
+                # detrend
+                data_time_med = np.nanmedian(data, axis=0, keepdims=True)
+                data -= data_time_med
                 dflat = data[~flag]
                 median = np.median(dflat)
                 madval = mad(dflat)
-                diff = np.abs(amp[:, p, Ilow:Ihigh, 0, c]-median)
+                diff = np.abs(data[:, p, Ilow:Ihigh, 0, c]-median)
                 flags[:, f, p, 0, c] = np.where(diff > threshold * mad, 1, 0)
 
     ds['gain_flags'] = (ds.gain_flags.dims, flags)
