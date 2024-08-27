@@ -1,4 +1,3 @@
-from contextlib import ExitStack
 from lbscratch.workers.main import cli
 import click
 from omegaconf import OmegaConf
@@ -79,6 +78,11 @@ def chanflags(**kw):
         idx = ms_name.rfind('.')
         suffix = ms_name[idx:]
         oname = ms_name.rstrip(suffix) + '_chanflags.png'
-    plt.figure()
-    plt.plot(freq, count.astype(np.float32)/(nrow*ncorr), 'xr')
-    plt.savefig(oname)
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_xticks(freq[0:-1:opts.channels_per_xtick])
+    ax.grid(True, axis='x', linestyle='--', linewidth=0.5, alpha=0.7)
+    ax.plot(freq, count.astype(np.float32)/(nrow*ncorr), 'xr')
+
+    # import ipdb; ipdb.set_trace()
+    fig.savefig(oname)

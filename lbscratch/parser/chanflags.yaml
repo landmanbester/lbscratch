@@ -6,6 +6,11 @@ inputs:
     dtype: str
     info:
       Output name
+  channels_per_xtick:
+    dtype: int
+    default: 16
+    info:
+      How frequently to plot vertical lines
 
 outputs:
   {}

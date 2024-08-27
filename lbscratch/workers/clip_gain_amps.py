@@ -105,7 +105,7 @@ def clip_amp(ds, threshold, window, i):
                 median = np.nanmedian(data)
                 madval = mad(data, axis=None, scale='normal', nan_policy='omit')
                 diff = np.abs(data - median)
-                flags[:, f, p, 0, c] = np.where(diff > threshold * mad, 1, 0)
+                flags[:, f, p, 0, c] = np.where(np.isnan(diff) | diff > threshold * mad, 1, 0)
 
     flags = np.any(flags, axis=-1).astype(flags.dtype)
     ds['gain_flags'] = (ds.gain_flags.dims, flags)
