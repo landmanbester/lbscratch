@@ -79,8 +79,8 @@ def chanflags(**kw):
         suffix = ms_name[idx:]
         oname = ms_name.rstrip(suffix) + '_chanflags.png'
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_xticks(freq[0:-1:opts.channels_per_xtick])
+    fig, ax = plt.subplots(figsize=(20, 8))
+    ax.set_xticks(freq[0:-1:opts.channels_per_xtick], labelsize=6)
     ax.grid(True, axis='x', linestyle='--', linewidth=0.5, alpha=0.7)
     ax.plot(freq, count.astype(np.float32)/(nrow*ncorr), 'xr')
 
