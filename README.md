@@ -1,7 +1,7 @@
 # lbscratch
 Collection of useful but untested and unsorted utilities.
 Use at your own peril!
-Should be pip installable en editible mode i.e.
+Should be pip installable in editible mode i.e.
 
 $ pip install -e lbscratch
 

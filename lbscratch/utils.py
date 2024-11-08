@@ -509,10 +509,6 @@ def stokes_vis(product, mode, pol='linear'):
     return vfunc, wfunc
 
 
-def index_where(p, q, P, Q):
-    return ((P==p) & (Q==q)).argmax()
-
-
 def row_to_tbl(data, ant1, ant2, time):
         nant = np.maximum(ant1, ant2) + 1
         nbl = nant * (nant - 1)/2 + nant  # including autos
@@ -643,9 +639,6 @@ def _flags_at_edges(flag, time, utime):
 def interp_flags(flag, time, ant1, ant2, edge_flags, edge_times):
 
     bl_flag = row_to_tbl(flaf, ant1, ant2, time)
-
-
-
 
 
 def index_where(p, q, P, Q):

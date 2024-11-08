@@ -1,9 +1,9 @@
 inputs:
-  gain_dir:
+  net_gain:
     dtype: str
     info: "Path to QuartiCal gain directory"
     abbreviation: g
-  gain_term:
+  complex_gain:
     dtype: str
     info: "Name of term to inetrpolate"
   output_filename:
