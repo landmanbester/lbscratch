@@ -36,6 +36,7 @@ def restimator(**kw):
     import dask
     import dask.array as da
     from daskms import xds_from_storage_ms as xds_from_ms
+    from daskms import xds_from_storage_table as xds_from_table
     from pathlib import Path
 
     ms_path = Path(opts.ms).resolve()
@@ -43,6 +44,7 @@ def restimator(**kw):
     xds = xds_from_ms(ms_name,
                       group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'],
                       chunks={'row': -1, 'chan': -1, 'corr': -1})
+    ants = xds_from_table(ms_name + '::ANTENNA')[0].NAME.values
 
     ant1 = xds[0].ANTENNA1.values
     ant2 = xds[0].ANTENNA2.values
@@ -66,6 +68,6 @@ def restimator(**kw):
             best_ant = p
             best_percent = flag_percent
 
-        print(f'{flag_percent} percent flagged for antenna {p}', file=log)
+        print(f'{flag_percent} percent flagged for antenna {p} with name {ants[p]}', file=log)
 
     print(f'Best reference antenna based on flagged percentage is antenna {best_ant}')
