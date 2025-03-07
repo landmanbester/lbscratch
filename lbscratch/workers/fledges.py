@@ -37,19 +37,24 @@ def fledges(**kw):
     dask.config.set(pool=ThreadPool(opts.nthreads))
     import dask.array as da
     from daskms import xds_from_storage_ms as xds_from_ms
+    from daskms import xds_from_storage_table as xds_from_table
     from daskms import xds_to_storage_table as xds_to_table
     import numpy as np
     import re
 
     xds = xds_from_ms(opts.ms, columns='FLAG', chunks={'row':opts.row_chunk},
                       group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'])
+    # assuming single spectral window
+    freq = xds_from_table(f'{opts.ms}::SPECTRAL_WINDOW')[0].CHAN_FREQ.values
+
 
     # 1397.4:1398.2 <=> 2590:2595
     # 1419.8:1421.3 <=> 2697:2705
     I = np.zeros(xds[0].chan.size, dtype=bool)
     for idx in opts.franges.split(','):
         m = re.match('(-?\d+)?:(-?\d+)?', idx)
-        ilow = int(m.group(1)) if m.group(1) is not None else None
+        ilow = m.group(1) if m.group(1) is not None else None
+        import ipdb; ipdb.set_trace()
         ihigh = int(m.group(2)) if m.group(2) is not None else None
         I[slice(ilow, ihigh)] = True
 
