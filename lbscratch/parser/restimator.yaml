@@ -5,6 +5,9 @@ inputs:
   nthreads:
     dtype: int
     default: 8
+  field-id:
+    dtype: int
+    default: 0
 
 outputs:
   outfile:

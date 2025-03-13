@@ -44,6 +44,7 @@ def restimator(**kw):
     xds = xds_from_ms(ms_name,
                       group_cols=['FIELD_ID', 'DATA_DESC_ID', 'SCAN_NUMBER'],
                       chunks={'row': -1, 'chan': -1, 'corr': -1})
+    xds = [ds for ds in xds if ds.FIELD_ID == opts.field_id]
     ants = xds_from_table(ms_name + '::ANTENNA')[0].NAME.values
 
     ant1 = xds[0].ANTENNA1.values
