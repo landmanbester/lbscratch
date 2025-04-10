@@ -51,6 +51,8 @@ def chanflags(**kw):
     counts = []
     nrow = 0
     for ds in xds:
+        if ds.FIELD_ID != opts.field_id:
+            continue
         nflag = ~ds.FLAG.data
         nrow += nflag.shape[0]
         counts.append(da.sum(nflag, axis=(0, -1))[:, None])

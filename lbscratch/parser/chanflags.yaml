@@ -11,6 +11,11 @@ inputs:
     default: 16
     info:
       How frequently to plot vertical lines
+  field-id:
+    dtype: int
+    default: 0
+    info:
+      Field ID to plot
 
 outputs:
   {}
