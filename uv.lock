@@ -1804,13 +1804,12 @@ dependencies = [
     { name = "matplotlib" },
     { name = "numba" },
     { name = "numpy" },
-    { name = "omegaconf" },
     { name = "pfb-imaging" },
     { name = "pyscilog" },
-    { name = "scabha" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.16.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "smoove" },
+    { name = "stimela" },
     { name = "sympy" },
 ]
 
@@ -1862,7 +1861,7 @@ jax = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = ">=8.0.0" },
+    { name = "click", specifier = ">=8.1" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'all'", specifier = ">=7.0.0" },
     { name = "coverage", extras = ["toml"], marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "dask", extras = ["array"], specifier = ">=2023.1.0" },
@@ -1881,7 +1880,6 @@ requires-dist = [
     { name = "nbsphinx", marker = "extra == 'docs'", specifier = ">=0.9.0" },
     { name = "numba", specifier = ">=0.57.0" },
     { name = "numpy", specifier = ">=1.24.0" },
-    { name = "omegaconf", specifier = ">=2.3.0" },
     { name = "optax", marker = "extra == 'all'", specifier = ">=0.1.7" },
     { name = "optax", marker = "extra == 'jax'", specifier = ">=0.1.7" },
     { name = "pfb-imaging", git = "https://github.com/ratt-ru/pfb-imaging.git?rev=rephase" },
@@ -1896,7 +1894,6 @@ requires-dist = [
     { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "ruff", marker = "extra == 'all'", specifier = ">=0.1.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
-    { name = "scabha", specifier = ">=0.7.0" },
     { name = "scipy", specifier = ">=1.10.0" },
     { name = "smoove", git = "https://github.com/landmanbester/smoove.git?rev=test_ci" },
     { name = "sphinx", marker = "extra == 'all'", specifier = ">=5.0.0" },
@@ -1905,6 +1902,7 @@ requires-dist = [
     { name = "sphinx-autodoc-typehints", marker = "extra == 'docs'", specifier = ">=1.19.0" },
     { name = "sphinx-rtd-theme", marker = "extra == 'all'", specifier = ">=1.2.0" },
     { name = "sphinx-rtd-theme", marker = "extra == 'docs'", specifier = ">=1.2.0" },
+    { name = "stimela", specifier = ">=2.0.2" },
     { name = "sympy", specifier = ">=1.11.0" },
     { name = "tbump", marker = "extra == 'all'", specifier = ">=6.9.0" },
     { name = "tbump", marker = "extra == 'dev'", specifier = ">=6.9.0" },
@@ -3978,25 +3976,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/bf/13/37438c4672ba1d23ec46df0e4b57e98469e5c5f4f98313cf6842b631652b/s3fs-2025.7.0.tar.gz", hash = "sha256:5e7f9ec0cad7745155e3eb86fae15b1481fa29946bf5b3a4ce3a60701ce6022d", size = 77795, upload-time = "2025-07-15T16:35:22.177Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ff/c7/30d13b7fd4f866ca3f30e9a6e7ae038f0c45226f6e26b3cc98d6d197f93b/s3fs-2025.7.0-py3-none-any.whl", hash = "sha256:b6b2d3f84b6aa1c2ba5e62e39dd9410cf54f10a2cce1ea6db1ba0d1a6bcce685", size = 30315, upload-time = "2025-07-15T16:35:20.734Z" },
-]
-
-[[package]]
-name = "scabha"
-version = "2.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "click" },
-    { name = "dill" },
-    { name = "omegaconf" },
-    { name = "pydantic" },
-    { name = "pyparsing" },
-    { name = "pytest" },
-    { name = "pyyaml" },
-    { name = "rich" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/dd/2c/66e1689ae5ffdf9aad32a0c47f81054e1f92f146c2a95308fd44aa155869/scabha-2.0.0.tar.gz", hash = "sha256:30966485658983b59e49ccd9ae4752296e931efee9733daf072fc6a1986dbd2e", size = 40588, upload-time = "2022-07-04T08:26:12.224Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/87/1ee1ab5079448425a7fe883375a36b5d728c89030b397efdff8d7d256bad/scabha-2.0.0-py3-none-any.whl", hash = "sha256:3fefd680db5c21e78f23ec9e050425c6f24f2d801c54ba78a5667acde9aeffcd", size = 44579, upload-time = "2022-07-04T08:26:10.878Z" },
 ]
 
 [[package]]
