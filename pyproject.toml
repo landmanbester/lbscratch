@@ -111,10 +111,6 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=lbscratch",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -173,13 +169,13 @@ ignore_missing_imports = true
 
 [tool.ruff]
 # Same as black's default line length
-line-length = 88
+line-length = 99
 
 # Target Python 3.10+ to match project requirements
 target-version = "py310"
 
 # Enable specific rule categories
-select = [
+lint.select = [
     "E",      # pycodestyle errors
     "W",      # pycodestyle warnings  
     "F",      # pyflakes
@@ -192,10 +188,11 @@ select = [
 ]
 
 # Ignore specific rules that conflict with scientific computing
-ignore = [
+lint.ignore = [
     "E501",   # Line too long (handled by formatter)
     "B008",   # Do not perform function calls in argument defaults (common in scientific APIs)
     "PD901",  # Avoid `df` as variable name (too restrictive for data science)
+    "E402",   # ignore module level import not at top of file
 ]
 
 # Exclude directories

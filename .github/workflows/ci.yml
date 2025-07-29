@@ -44,7 +44,7 @@ jobs:
     
     - name: Test with pytest
       run: |
-        uv run pytest tests/ -v --cov=lbscratch --cov-report=xml --cov-report=term-missing
+        uv run pytest tests/ -v
     
     - name: Test CLI installation
       run: |
@@ -53,13 +53,6 @@ jobs:
         uv run lbs bsmooth --help || true
         uv run lbs gsmooth --help || true
     
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
-      if: matrix.python-version == '3.10'
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
-        token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     runs-on: ubuntu-latest
