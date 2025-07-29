@@ -105,7 +105,7 @@ def delay_init(**kw):
         }
         from collections import namedtuple
 
-        gain_spec_tup = namedtuple("gains_spec_tup", "tchunk fchunk achunk dchunk cchunk")
+        gain_spec_tup = namedtuple("gain_spec_tup", "tchunk fchunk achunk dchunk cchunk")
         attrs = {
             "DATA_DESC_ID": int(ddid),
             "FIELD_ID": int(fid),

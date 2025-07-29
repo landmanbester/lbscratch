@@ -14,63 +14,63 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: ${{ github.event.inputs.test-pypi == 'true' && 'test-pypi' || 'pypi' }}
       url: ${{ github.event.inputs.test-pypi == 'true' && 'https://test.pypi.org/p/lbscratch' || 'https://pypi.org/p/lbscratch' }}
-    
+
     permissions:
       contents: read
       id-token: write  # Required for trusted publishing
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch full history for proper version detection
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
-    
+
     - name: Set up Python
       run: uv python install 3.10
-    
+
     - name: Install dependencies
       run: uv sync --dev
-    
+
     - name: Verify version consistency
       run: |
         PACKAGE_VERSION=$(uv run python -c "import lbscratch; print(lbscratch.__version__)")
         echo "Package version: $PACKAGE_VERSION"
-        
+
         if [[ "${{ github.event_name }}" == "release" ]]; then
           TAG_VERSION="${{ github.event.release.tag_name }}"
           TAG_VERSION=${TAG_VERSION#v}  # Remove 'v' prefix if present
           echo "Release tag version: $TAG_VERSION"
-          
+
           if [[ "$PACKAGE_VERSION" != "$TAG_VERSION" ]]; then
             echo "Error: Package version ($PACKAGE_VERSION) doesn't match release tag ($TAG_VERSION)"
             exit 1
           fi
         fi
-    
+
     - name: Run tests
       run: |
         uv run pytest tests/ -v
-    
+
     - name: Check code quality
       run: |
         uv run ruff check lbscratch tests
         uv run ruff format --check lbscratch tests
-    
+
     - name: Build package
       run: |
         uv build
-    
+
     - name: Check package integrity
       run: |
         uv run python -m pip install --upgrade pip
         uv run python -m pip install twine
         uv run python -m twine check dist/*
-    
+
     - name: Publish to Test PyPI
       if: github.event.inputs.test-pypi == 'true'
       uses: pypa/gh-action-pypi-publish@release/v1
@@ -78,25 +78,25 @@ jobs:
         repository-url: https://test.pypi.org/legacy/
         password: ${{ secrets.TEST_PYPI_API_TOKEN }}
         verbose: true
-    
+
     - name: Publish to PyPI
       if: github.event.inputs.test-pypi != 'true'
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
         verbose: true
-    
+
     - name: Create deployment summary
       run: |
         PACKAGE_VERSION=$(uv run python -c "import lbscratch; print(lbscratch.__version__)")
         REGISTRY=${{ github.event.inputs.test-pypi == 'true' && 'Test PyPI' || 'PyPI' }}
-        
+
         echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
         echo "- **Package**: lbscratch" >> $GITHUB_STEP_SUMMARY
-        echo "- **Version**: $PACKAGE_VERSION" >> $GITHUB_STEP_SUMMARY  
+        echo "- **Version**: $PACKAGE_VERSION" >> $GITHUB_STEP_SUMMARY
         echo "- **Registry**: $REGISTRY" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        
+
         if [[ "${{ github.event.inputs.test-pypi }}" == "true" ]]; then
           echo "- **Install Command**: \`pip install -i https://test.pypi.org/simple/ lbscratch\`" >> $GITHUB_STEP_SUMMARY
         else

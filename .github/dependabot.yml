@@ -47,7 +47,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      
+
       testing:
         patterns:
           - "pytest*"
@@ -56,7 +56,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-      
+
       build-tools:
         patterns:
           - "ruff*"
@@ -64,7 +64,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
-    
+
     # Allow specific version updates
     allow:
       - dependency-type: "direct"
@@ -73,7 +73,7 @@ updates:
         update-type: "version-update:semver-minor"
       - dependency-type: "indirect"
         update-type: "version-update:semver-patch"
-    
+
     # Ignore major version updates for critical scientific packages
     # to avoid breaking changes
     ignore:

@@ -205,7 +205,7 @@ def array2qcal_ds(gobj_amp, gobj_phase, time, freq, ant_names, fid, ddid, sid, f
         "gains": (("gain_time", "gain_freq", "antenna", "direction", "correlation"), gain),
         "gain_flags": (("gain_time", "gain_freq", "antenna", "direction"), gflags),
     }
-    gain_spec_tup = namedtuple("gains_spec_tup", "tchunk fchunk achunk dchunk cchunk")
+    gain_spec_tup = namedtuple("gain_spec_tup", "tchunk fchunk achunk dchunk cchunk")
     attrs = {
         "DATA_DESC_ID": int(ddid),
         "FIELD_ID": int(fid),

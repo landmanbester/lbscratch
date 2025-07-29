@@ -12,69 +12,69 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.10", "3.11", "3.12"]
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
         cache-dependency-glob: "uv.lock"
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       run: uv python install ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         uv sync --dev --all-extras
-    
+
     - name: Check code formatting with ruff
       run: |
         uv run ruff format --check lbscratch tests
-    
+
     - name: Lint with ruff
       run: |
         uv run ruff check lbscratch tests
-    
+
     - name: Type check with mypy
       run: |
         uv run mypy lbscratch
       continue-on-error: true  # Allow mypy to fail initially during migration
-    
+
     - name: Test with pytest
       run: |
         uv run pytest tests/ -v
-    
+
     - name: Test CLI installation
       run: |
         uv run lbs --help
         uv run lbs fledges --help || true
         uv run lbs bsmooth --help || true
         uv run lbs gsmooth --help || true
-    
+
 
   build:
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install uv
       uses: astral-sh/setup-uv@v3
-    
+
     - name: Set up Python
       run: uv python install 3.10
-    
+
     - name: Build package
       run: |
         uv build
-    
+
     - name: Check package metadata
       run: |
         uv run python -c "import lbscratch; print(f'Version: {lbscratch.__version__}')"
-    
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
