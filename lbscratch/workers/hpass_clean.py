@@ -84,8 +84,6 @@
 #     model_mfs = np.mean(model, axis=0)
 
 
-
-
 #     if opts.threshold is None:
 #         threshold = opts.sigmathreshold * rms
 #     else:

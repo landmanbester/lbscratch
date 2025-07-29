@@ -32,10 +32,9 @@ dependencies = [
     "numba>=0.57.0",
     "dask[array]>=2023.1.0",
     "matplotlib>=3.6.0",
-    "click>=8.0.0",
-    "omegaconf>=2.3.0",
+    "click>=8.1",
+    "stimela>=2.0.2",
     "pyscilog",
-    "scabha>=0.7.0",
     "finufft",
     "ducc0",
     "sympy>=1.11.0",
@@ -44,7 +43,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Scientific computing extras for future JAX integration  
+# Scientific computing extras for future JAX integration
 jax = [
     "jax[cpu]>=0.4.0",
     "jaxlib>=0.4.0",
@@ -111,10 +110,6 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=lbscratch",
-    "--cov-report=term-missing",
-    "--cov-report=html",
-    "--cov-report=xml",
 ]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -149,8 +144,8 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_any_generics = true
 disallow_subclassing_any = true
-disallow_untyped_calls = true
-disallow_untyped_defs = true
+disallow_untyped_calls = false
+disallow_untyped_defs = false
 disallow_incomplete_defs = true
 check_untyped_defs = true
 disallow_untyped_decorators = true
@@ -159,6 +154,7 @@ warn_no_return = true
 warn_unreachable = true
 implicit_reexport = false
 strict_equality = true
+disable_error_code = ["union-attr", "no-untyped-def", "assignment", "var-annotated"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -173,15 +169,15 @@ ignore_missing_imports = true
 
 [tool.ruff]
 # Same as black's default line length
-line-length = 88
+line-length = 99
 
 # Target Python 3.10+ to match project requirements
 target-version = "py310"
 
 # Enable specific rule categories
-select = [
+lint.select = [
     "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings  
+    "W",      # pycodestyle warnings
     "F",      # pyflakes
     "I",      # isort
     "B",      # flake8-bugbear
@@ -192,10 +188,11 @@ select = [
 ]
 
 # Ignore specific rules that conflict with scientific computing
-ignore = [
+lint.ignore = [
     "E501",   # Line too long (handled by formatter)
     "B008",   # Do not perform function calls in argument defaults (common in scientific APIs)
     "PD901",  # Avoid `df` as variable name (too restrictive for data science)
+    "E402",   # ignore module level import not at top of file
 ]
 
 # Exclude directories

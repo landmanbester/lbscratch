@@ -1,12 +1,13 @@
-from contextlib import ExitStack
-from lbscratch.workers.main import cli
-import click
 from omegaconf import OmegaConf
 import pyscilog
-pyscilog.init('lbscratch')
-log = pyscilog.get_logger('DELAY_INIT')
+
+from lbscratch.workers.main import cli
+
+pyscilog.init("lbscratch")
+log = pyscilog.get_logger("DELAY_INIT")
 
 from scabha.schema_utils import clickify_parameters
+
 from lbscratch.parser.schemas import schema
 
 # create default parameters from schema
@@ -14,46 +15,48 @@ defaults = {}
 for key in schema.delay_init["inputs"].keys():
     defaults[key] = schema.delay_init["inputs"][key]["default"]
 
-@cli.command(context_settings={'show_default': True})
+
+@cli.command(context_settings={"show_default": True})
 @clickify_parameters(schema.delay_init)
 def delay_init(**kw):
-    '''
+    """
     Smooth time variable solution
-    '''
+    """
     defaults.update(kw)
     opts = OmegaConf.create(defaults)
     import time
+
     timestamp = time.strftime("%Y%m%d-%H%M%S")
-    pyscilog.log_to_file(f'delay_init_{timestamp}.log')
+    pyscilog.log_to_file(f"delay_init_{timestamp}.log")
     OmegaConf.set_struct(opts, True)
 
     # TODO - prettier config printing
-    print('Input Options:', file=log)
+    print("Input Options:", file=log)
     for key in opts.keys():
-        print('     %25s = %s' % (key, opts[key]), file=log)
+        print(f"     {key:>25} = {opts[key]}", file=log)
 
-    import numpy as np
+    from pathlib import Path
+
     import dask
     import dask.array as da
     from daskms import xds_from_ms, xds_from_table
     from daskms.experimental.zarr import xds_to_zarr
-    from lbscratch.utils import accum_vis, estimate_delay
+    import numpy as np
     import xarray as xr
-    from pathlib import Path
+
+    from lbscratch.utils import accum_vis, estimate_delay
 
     ms_path = Path(opts.ms).resolve()
     ms_name = str(ms_path)
-    group_cols = ['FIELD_ID', 'DATA_DESC_ID']
+    group_cols = ["FIELD_ID", "DATA_DESC_ID"]
     if opts.split_scans:
         print("Splitting estimate by scan", file=log)
-        group_cols.append('SCAN_NUMBER')
-    xds = xds_from_ms(ms_name,
-                      group_cols=group_cols,
-                      chunks={'row': -1, 'chan': -1, 'corr': 1})
-    ant_names = xds_from_table(f'{ms_name}::ANTENNA')[0].NAME.values
+        group_cols.append("SCAN_NUMBER")
+    xds = xds_from_ms(ms_name, group_cols=group_cols, chunks={"row": -1, "chan": -1, "corr": 1})
+    ant_names = xds_from_table(f"{ms_name}::ANTENNA")[0].NAME.values
     # pad frequency to get sufficient resolution in delay space
-    spws = dask.compute(xds_from_table(f'{ms_name}::SPECTRAL_WINDOW'))[0]
-    fields = dask.compute(xds_from_table(f'{ms_name}::FIELD'))[0]
+    spws = dask.compute(xds_from_table(f"{ms_name}::SPECTRAL_WINDOW"))[0]
+    fields = dask.compute(xds_from_table(f"{ms_name}::FIELD"))[0]
 
     ant1 = xds[0].ANTENNA1.values
     ant2 = xds[0].ANTENNA2.values
@@ -65,7 +68,7 @@ def delay_init(**kw):
         if opts.split_scans:
             sid = int(ds.SCAN_NUMBER)
         else:
-            sid = '?'
+            sid = "?"
         fname = fields[fid].NAME.values[0]
 
         # only diagonal correlations
@@ -76,14 +79,14 @@ def delay_init(**kw):
             ncorr = 1
 
         if opts.ref_ant == -1:
-            ref_ant = nant-1
+            ref_ant = nant - 1
         else:
             ref_ant = opts.ref_ant
-        vis_ant = accum_vis(ds.DATA.data, ds.FLAG.data,
-                            ds.ANTENNA1.data, ds.ANTENNA2.data,
-                            nant, ref_ant=ref_ant)
+        vis_ant = accum_vis(
+            ds.DATA.data, ds.FLAG.data, ds.ANTENNA1.data, ds.ANTENNA2.data, nant, ref_ant=ref_ant
+        )
 
-        vis_ant.rechunk({1:8})
+        vis_ant.rechunk({1: 8})
 
         freq = spws[ddid].CHAN_FREQ.data[0]
         delays = estimate_delay(vis_ant, freq, opts.min_delay)
@@ -97,47 +100,49 @@ def delay_init(**kw):
         gain = da.rechunk(gain, (-1, -1, -1, -1, -1))
         gflags = da.zeros((ntime, nchan, nant, ndir), chunks=(-1, -1, -1, -1), dtype=np.int8)
         data_vars = {
-            'gains':(('gain_time', 'gain_freq', 'antenna', 'direction', 'correlation'), gain),
-            'gain_flags':(('gain_time', 'gain_freq', 'antenna', 'direction'), gflags)
+            "gains": (("gain_time", "gain_freq", "antenna", "direction", "correlation"), gain),
+            "gain_flags": (("gain_time", "gain_freq", "antenna", "direction"), gflags),
         }
         from collections import namedtuple
-        gain_spec_tup = namedtuple('gains_spec_tup', 'tchunk fchunk achunk dchunk cchunk')
+
+        gain_spec_tup = namedtuple("gain_spec_tup", "tchunk fchunk achunk dchunk cchunk")
         attrs = {
-            'DATA_DESC_ID': int(ddid),
-            'FIELD_ID': int(fid),
-            'FIELD_NAME': fname,
-            'GAIN_AXES': ('gain_time', 'gain_freq', 'antenna', 'direction', 'correlation'),
-            'GAIN_SPEC': gain_spec_tup(tchunk=(int(ntime),),
-                                        fchunk=(int(nchan),),
-                                        achunk=(int(nant),),
-                                        dchunk=(int(1),),
-                                        cchunk=(int(ncorr),)),
-            'NAME': 'NET',
-            'SCAN_NUMBER': sid,
-            'TYPE': 'complex'
+            "DATA_DESC_ID": int(ddid),
+            "FIELD_ID": int(fid),
+            "FIELD_NAME": fname,
+            "GAIN_AXES": ("gain_time", "gain_freq", "antenna", "direction", "correlation"),
+            "GAIN_SPEC": gain_spec_tup(
+                tchunk=(int(ntime),),
+                fchunk=(int(nchan),),
+                achunk=(int(nant),),
+                dchunk=(1,),
+                cchunk=(int(ncorr),),
+            ),
+            "NAME": "NET",
+            "SCAN_NUMBER": sid,
+            "TYPE": "complex",
         }
-        if ncorr==1:
-            corrs = np.array(['XX'], dtype=object)
-        elif ncorr==2:
-            corrs = np.array(['XX', 'YY'], dtype=object)
+        if ncorr == 1:
+            corrs = np.array(["XX"], dtype=object)
+        elif ncorr == 2:
+            corrs = np.array(["XX", "YY"], dtype=object)
         coords = {
-            'gain_freq': (('gain_freq',), freq),
-            'gain_time': (('gain_time',), utime),
-            'antenna': (('ant'), ant_names),
-            'correlation': (('corr'), corrs),
-            'direction': (('dir'), np.array([0], dtype=np.int32)),
-            'f_chunk': (('f_chunk'), np.array([0], dtype=np.int32)),
-            't_chunk': (('t_chunk'), np.array([0], dtype=np.int32))
+            "gain_freq": (("gain_freq",), freq),
+            "gain_time": (("gain_time",), utime),
+            "antenna": (("ant"), ant_names),
+            "correlation": (("corr"), corrs),
+            "direction": (("dir"), np.array([0], dtype=np.int32)),
+            "f_chunk": (("f_chunk"), np.array([0], dtype=np.int32)),
+            "t_chunk": (("t_chunk"), np.array([0], dtype=np.int32)),
         }
 
         ods = xr.Dataset(data_vars, coords=coords, attrs=attrs)
-        ods = ods.chunk({ax: "auto" for ax in ods.GAIN_AXES[:2]})
+        ods = ods.chunk(dict.fromkeys(ods.GAIN_AXES[:2], "auto"))
         out_ds.append(ods)
 
     # LB - Why is this required? ods.chunk should coerce all arrays to have the same chunking
     out_ds = xr.unify_chunks(*out_ds)
-    out_path = Path(f'{opts.gain_dir}::{opts.gain_term}').resolve()
-    out_name = str(out_path)
-    writes = xds_to_zarr(out_ds, out_path, columns='ALL')
+    out_path = Path(f"{opts.gain_dir}::{opts.gain_term}").resolve()
+    # out_name = str(out_path)  # unused
+    writes = xds_to_zarr(out_ds, out_path, columns="ALL")
     dask.compute(writes)
-

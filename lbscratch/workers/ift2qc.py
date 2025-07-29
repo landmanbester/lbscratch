@@ -74,4 +74,3 @@
 #     else:
 #         outname = opts.output_filename
 #     dask.compute(xds_to_zarr(writes, f'{outname}gains.qc::NET', columns='ALL'))
-

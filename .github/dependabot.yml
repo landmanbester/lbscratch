@@ -1,87 +1,33 @@
 version: 2
 updates:
-  # Monitor GitHub Actions for version updates
+  # Monitor GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "06:00"
+      time: "09:00"
     open-pull-requests-limit: 10
     reviewers:
-      - "landmanbester"
-    labels:
-      - "dependencies"
-      - "github-actions"
+      - "@bester"
+    assignees:
+      - "@bester"
     commit-message:
       prefix: "ci"
       include: "scope"
 
-  # Monitor Python dependencies in pyproject.toml
+  # Monitor Python dependencies
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "tuesday"
-      time: "06:00"
-    open-pull-requests-limit: 15
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
     reviewers:
-      - "landmanbester"
-    labels:
-      - "dependencies"
-      - "python"
+      - "@landmanbester"
+    assignees:
+      - "@landmanbester"
     commit-message:
       prefix: "deps"
       include: "scope"
-    # Group related updates together
-    groups:
-      scientific-computing:
-        patterns:
-          - "numpy*"
-          - "scipy*"
-          - "numba*"
-          - "jax*"
-          - "jaxlib*"
-          - "matplotlib*"
-          - "sympy*"
-        update-types:
-          - "minor"
-          - "patch"
-      
-      testing:
-        patterns:
-          - "pytest*"
-          - "coverage*"
-          - "mypy*"
-        update-types:
-          - "minor"
-          - "patch"
-      
-      build-tools:
-        patterns:
-          - "ruff*"
-          - "pre-commit*"
-        update-types:
-          - "minor"
-          - "patch"
-    
-    # Allow specific version updates
-    allow:
-      - dependency-type: "direct"
-        update-type: "version-update:semver-patch"
-      - dependency-type: "direct"
-        update-type: "version-update:semver-minor"
-      - dependency-type: "indirect"
-        update-type: "version-update:semver-patch"
-    
-    # Ignore major version updates for critical scientific packages
-    # to avoid breaking changes
-    ignore:
-      - dependency-name: "numpy"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "scipy"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "numba"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "matplotlib"
-        update-types: ["version-update:semver-major"]
